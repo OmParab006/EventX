@@ -1,0 +1,3254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EventX - Teacher Dashboard</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        /* ==========================================
+           NAVBAR
+        ========================================== */
+
+        .navbar {
+            min-height: 70px;
+            background: linear-gradient(
+                135deg,
+                #0f172a,
+                #1e3a8a
+            );
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 12px 35px;
+
+            box-shadow:
+                0 3px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo {
+            font-size: 27px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #60a5fa;
+        }
+
+        .teacher-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .teacher-name {
+            font-size: 14px;
+        }
+
+        .role-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            border: none;
+            background: white;
+            color: #1e3a8a;
+
+            padding: 9px 17px;
+
+            border-radius: 8px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #e5edff;
+        }
+
+        /* ==========================================
+           MAIN CONTAINER
+        ========================================== */
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: 30px auto 50px;
+        }
+
+        /* ==========================================
+           WELCOME
+        ========================================== */
+
+        .welcome {
+            background: white;
+
+            padding: 28px;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 4px 18px rgba(0, 0, 0, 0.06);
+
+            margin-bottom: 25px;
+        }
+
+        .welcome h1 {
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* ==========================================
+           STATS
+        ========================================== */
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+
+            padding: 22px;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card h3 {
+            color: #1e3a8a;
+
+            font-size: 14px;
+
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 30px;
+
+            font-weight: bold;
+
+            color: #111827;
+        }
+
+        /* ==========================================
+           SECTIONS
+        ========================================== */
+
+        .section {
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 4px 18px rgba(0, 0, 0, 0.06);
+
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 22px;
+        }
+
+        .section-title h2 {
+            color: #1e3a8a;
+        }
+
+        /* ==========================================
+           FORM
+        ========================================== */
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+
+            color: #334155;
+
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+
+            padding: 12px 13px;
+
+            border:
+                1px solid #cbd5e1;
+
+            border-radius: 8px;
+
+            outline: none;
+
+            font-size: 14px;
+
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #2563eb;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(37, 99, 235, 0.10);
+        }
+
+        .create-btn {
+            margin-top: 20px;
+
+            background: #2563eb;
+
+            color: white;
+
+            border: none;
+
+            padding: 12px 22px;
+
+            border-radius: 8px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .create-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .create-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* ==========================================
+           MESSAGE
+        ========================================== */
+
+        .message {
+            padding: 12px;
+
+            margin-top: 15px;
+
+            border-radius: 8px;
+
+            display: none;
+
+            font-size: 14px;
+        }
+
+        .message.success {
+            display: block;
+
+            background: #dcfce7;
+
+            color: #166534;
+
+            border:
+                1px solid #86efac;
+        }
+
+        .message.error {
+            display: block;
+
+            background: #fee2e2;
+
+            color: #991b1b;
+
+            border:
+                1px solid #fca5a5;
+        }
+
+        /* ==========================================
+           SMALL BUTTONS
+        ========================================== */
+
+        .action-btn {
+            border: none;
+
+            padding: 7px 10px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            margin: 2px;
+        }
+
+        .view-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .edit-btn {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .refresh-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .refresh-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* ==========================================
+           TABLE
+        ========================================== */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 800px;
+        }
+
+        th {
+            background: #eff6ff;
+
+            color: #1e3a8a;
+
+            padding: 13px;
+
+            text-align: left;
+
+            font-size: 13px;
+        }
+
+        td {
+            padding: 13px;
+
+            border-bottom:
+                1px solid #e5e7eb;
+
+            font-size: 13px;
+
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* ==========================================
+           EMPTY
+        ========================================== */
+
+        .empty {
+            text-align: center;
+
+            padding: 35px;
+
+            color: #64748b;
+        }
+
+        /* ==========================================
+           PARTICIPANTS
+        ========================================== */
+
+        .participants-box {
+            display: none;
+
+            margin-top: 25px;
+
+            border-top:
+                1px solid #e5e7eb;
+
+            padding-top: 20px;
+        }
+
+        .participants-title {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 15px;
+        }
+
+        .participants-title h3 {
+            color: #1e3a8a;
+        }
+
+        .close-btn {
+            border: none;
+
+            background: #e5e7eb;
+
+            padding: 7px 12px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+        }
+
+        /* ==========================================
+           MODAL
+        ========================================== */
+
+        .modal {
+            position: fixed;
+
+            inset: 0;
+
+            background:
+                rgba(15, 23, 42, 0.60);
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            z-index: 1000;
+        }
+
+        .modal-content {
+            width: 100%;
+
+            max-width: 600px;
+
+            max-height: 90vh;
+
+            overflow-y: auto;
+
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 25px;
+        }
+
+        .modal-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #1e3a8a;
+        }
+
+        .modal-close {
+            border: none;
+
+            background: transparent;
+
+            font-size: 24px;
+
+            cursor: pointer;
+
+            color: #64748b;
+        }
+
+        .modal-actions {
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            margin-top: 20px;
+        }
+
+        .cancel-btn {
+            border: none;
+
+            background: #e5e7eb;
+
+            color: #374151;
+
+            padding: 10px 17px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+        }
+
+        .save-btn {
+            border: none;
+
+            background: #2563eb;
+
+            color: white;
+
+            padding: 10px 17px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+        }
+
+        /* ==========================================
+           RESPONSIVE
+        ========================================== */
+
+        @media (max-width: 700px) {
+
+            .navbar {
+                padding: 14px 18px;
+
+                flex-wrap: wrap;
+
+                gap: 12px;
+            }
+
+            .teacher-area {
+                width: 100%;
+
+                justify-content: space-between;
+            }
+
+            .container {
+                width: calc(100% - 24px);
+
+                margin-top: 20px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .section {
+                padding: 18px;
+            }
+
+            .welcome {
+                padding: 20px;
+            }
+
+            .welcome h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 450px) {
+
+            .teacher-area {
+                flex-wrap: wrap;
+            }
+
+            .role-badge {
+                order: 3;
+
+                width: 100%;
+
+                text-align: center;
+            }
+
+            .section-title {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ==========================================
+         NAVBAR
+    ========================================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            Event<span>X</span>
+        </div>
+
+        <div class="teacher-area">
+
+            <div
+                class="teacher-name"
+                id="teacherName">
+
+                Teacher
+
+            </div>
+
+            <div class="role-badge">
+                TEACHER
+            </div>
+
+            <button
+                type="button"
+                class="logout-btn"
+                style="background:#fee2e2;color:#b91c1c;"
+                id="deleteAccountButton"
+                onclick="deleteAccount()">
+
+                Delete Account
+
+            </button>
+
+            <button
+                type="button"
+                class="logout-btn"
+                id="logoutButton">
+
+                Logout
+
+            </button>
+
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+
+        <!-- ==========================================
+             WELCOME
+        ========================================== -->
+
+        <section class="welcome">
+
+            <h1 id="welcomeText">
+                Welcome, Teacher 👋
+            </h1>
+
+            <p>
+                Manage your college events,
+                registrations and participants
+                from one place.
+            </p>
+
+        </section>
+
+
+        <!-- ==========================================
+             STATS
+        ========================================== -->
+
+        <section class="stats">
+
+            <div class="stat-card">
+                <h3>Total Students</h3>
+                <div class="stat-number" id="totalStudents">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Teachers</h3>
+                <div class="stat-number" id="totalTeachers">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>My Events</h3>
+                <div class="stat-number" id="eventCount">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Registrations</h3>
+                <div class="stat-number" id="totalRegistrations">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Payments</h3>
+                <div class="stat-number" id="totalPayments">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="stat-number" id="totalRevenue">₹0</div>
+            </div>
+
+        </section>
+
+
+        <!-- ==========================================
+             CREATE EVENT
+        ========================================== -->
+
+        <section class="section">
+
+            <div class="section-title">
+
+                <h2>
+                    Create New Event
+                </h2>
+
+            </div>
+
+
+            <!-- IMPORTANT:
+                 NO inline onsubmit.
+                 JavaScript handles submit below.
+            -->
+
+            <form
+                id="createEventForm"
+                novalidate>
+
+
+                <div class="form-grid">
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="title">
+
+                            Event Title *
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            placeholder="Enter event title"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="venue">
+
+                            Venue *
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="venue"
+                            placeholder="Enter venue"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="event_date">
+
+                            Event Date & Time *
+
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="event_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="max_participants">
+
+                            Maximum Participants *
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="max_participants"
+                            min="1"
+                            placeholder="e.g. 100"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="fee">
+
+                            Event Fee
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="fee"
+                            min="0"
+                            step="0.01"
+                            value="0"
+                            placeholder="0 for free event"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label
+                            for="description">
+
+                            Description
+
+                        </label>
+
+                        <textarea
+                            id="description"
+                            placeholder="Enter event description">
+                        </textarea>
+
+                    </div>
+
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="create-btn"
+                    id="createButton">
+
+                    Create Event
+
+                </button>
+
+
+                <div
+                    id="createMessage"
+                    class="message">
+                </div>
+
+
+            </form>
+
+        </section>
+
+
+        <!-- ==========================================
+             MY EVENTS
+        ========================================== -->
+
+        <section class="section">
+
+            <div class="section-title">
+
+                <h2>
+                    My Events
+                </h2>
+
+                <button
+                    type="button"
+                    class="action-btn refresh-btn"
+                    id="refreshEventsButton">
+
+                    Refresh
+
+                </button>
+
+            </div>
+
+
+            <div
+                class="table-wrapper"
+                id="eventsContainer">
+
+                <div class="empty">
+                    Loading events...
+                </div>
+
+            </div>
+
+
+            <!-- PARTICIPANTS -->
+
+            <div
+                class="participants-box"
+                id="participantsBox">
+
+
+                <div class="participants-title">
+
+                    <h3
+                        id="participantsTitle">
+
+                        Participants
+
+                    </h3>
+
+
+                    <button
+                        type="button"
+                        class="close-btn"
+                        id="closeParticipantsButton">
+
+                        Close
+
+                    </button>
+
+                </div>
+
+
+                <div
+                    class="table-wrapper"
+                    id="participantsContainer">
+
+                    <div class="empty">
+                        Loading participants...
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==========================================
+         EDIT MODAL
+    ========================================== -->
+
+    <div
+        class="modal"
+        id="editModal">
+
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <h2>
+                    Edit Event
+                </h2>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="modalCloseButton">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <form
+                id="editEventForm"
+                novalidate>
+
+
+                <input
+                    type="hidden"
+                    id="edit_id"
+                >
+
+
+                <div class="form-grid">
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="edit_title">
+
+                            Event Title *
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="edit_title"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="edit_venue">
+
+                            Venue *
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="edit_venue"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="edit_event_date">
+
+                            Event Date & Time *
+
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="edit_event_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="edit_max_participants">
+
+                            Maximum Participants *
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="edit_max_participants"
+                            min="1"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label
+                            for="edit_fee">
+
+                            Event Fee
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="edit_fee"
+                            min="0"
+                            step="0.01"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label
+                            for="edit_description">
+
+                            Description
+
+                        </label>
+
+                        <textarea
+                            id="edit_description">
+                        </textarea>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="cancel-btn"
+                        id="cancelEditButton">
+
+                        Cancel
+
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="save-btn"
+                        id="saveButton">
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        /* ==================================================
+           AUTH
+        ================================================== */
+
+        const token =
+            localStorage.getItem("token");
+
+
+        let currentUser = null;
+
+
+        try {
+
+            currentUser =
+                JSON.parse(
+                    localStorage.getItem("user")
+                );
+
+        } catch (error) {
+
+            console.error(
+                "USER PARSE ERROR:",
+                error
+            );
+
+            currentUser = null;
+
+        }
+
+
+        /* ==================================================
+           AUTH CHECK
+        ================================================== */
+
+        if (!token || !currentUser) {
+
+            window.location.href = "/";
+
+        }
+
+
+        if (
+            currentUser &&
+            String(
+                currentUser.role || ""
+            ).toLowerCase() !== "teacher"
+        ) {
+
+            alert(
+                "Access denied. Teacher account required."
+            );
+
+            window.location.href =
+                "/dashboard.html";
+
+        }
+
+
+        /* ==================================================
+           DISPLAY TEACHER
+        ================================================== */
+
+        function displayTeacher() {
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            const name =
+                currentUser.name ||
+                currentUser.full_name ||
+                currentUser.username ||
+                currentUser.email ||
+                "Teacher";
+
+
+            document.getElementById(
+                "teacherName"
+            ).textContent = name;
+
+
+            document.getElementById(
+                "welcomeText"
+            ).textContent =
+                `Welcome, ${name} 👋`;
+
+        }
+
+
+        /* ==================================================
+           AUTH HEADERS
+        ================================================== */
+
+        function authHeaders() {
+
+            return {
+
+                "Content-Type":
+                    "application/json",
+
+                "Authorization":
+                    `Bearer ${token}`
+
+            };
+
+        }
+
+
+        /* ==================================================
+           CREATE MESSAGE
+        ================================================== */
+
+        function showCreateMessage(
+            text,
+            type
+        ) {
+
+            const message =
+                document.getElementById(
+                    "createMessage"
+                );
+
+
+            message.textContent =
+                text;
+
+
+            message.className =
+                `message ${type}`;
+
+
+            message.style.display =
+                "block";
+
+        }
+
+
+        /* ==================================================
+           CREATE EVENT
+        ================================================== */
+
+        async function createEvent(event) {
+
+            /*
+             * THIS IS THE IMPORTANT FIX.
+             *
+             * Prevent normal HTML form submission.
+             * Without this, browser reloads the page.
+             */
+
+            event.preventDefault();
+
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "CREATE EVENT FORM SUBMITTED"
+            );
+
+            console.log(
+                "================================"
+            );
+
+
+            const button =
+                document.getElementById(
+                    "createButton"
+                );
+
+
+            const title =
+                document
+                    .getElementById("title")
+                    .value
+                    .trim();
+
+
+            const description =
+                document
+                    .getElementById("description")
+                    .value
+                    .trim();
+
+
+            const venue =
+                document
+                    .getElementById("venue")
+                    .value
+                    .trim();
+
+
+            const eventDate =
+                document
+                    .getElementById("event_date")
+                    .value;
+
+
+            const maxParticipants =
+                document
+                    .getElementById(
+                        "max_participants"
+                    )
+                    .value;
+
+
+            const fee =
+                document
+                    .getElementById("fee")
+                    .value || "0";
+
+
+            /* ==========================================
+               VALIDATION
+            ========================================== */
+
+            if (!title) {
+
+                showCreateMessage(
+                    "Please enter event title.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (!venue) {
+
+                showCreateMessage(
+                    "Please enter venue.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (!eventDate) {
+
+                showCreateMessage(
+                    "Please select event date and time.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (!maxParticipants) {
+
+                showCreateMessage(
+                    "Please enter maximum participants.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                Number(maxParticipants) < 1
+            ) {
+
+                showCreateMessage(
+                    "Maximum participants must be at least 1.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                Number(fee) < 0
+            ) {
+
+                showCreateMessage(
+                    "Event fee cannot be negative.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /* ==========================================
+               BUTTON STATE
+            ========================================== */
+
+            button.disabled = true;
+
+            button.textContent =
+                "Creating...";
+
+
+            showCreateMessage(
+                "Creating event...",
+                "success"
+            );
+
+
+            try {
+
+                /* ======================================
+                   SEND REQUEST
+                ====================================== */
+
+                console.log(
+                    "SENDING CREATE EVENT REQUEST..."
+                );
+
+
+                const requestBody = {
+
+                    title:
+                        title,
+
+                    description:
+                        description,
+
+                    venue:
+                        venue,
+
+                    event_date:
+                        eventDate,
+
+                    max_participants:
+                        Number(
+                            maxParticipants
+                        ),
+
+                    fee:
+                        Number(fee)
+
+                };
+
+
+                console.log(
+                    "CREATE EVENT BODY:",
+                    requestBody
+                );
+
+
+                const response =
+                    await fetch(
+                        "/api/events",
+                        {
+
+                            method: "POST",
+
+                            headers:
+                                authHeaders(),
+
+                            body:
+                                JSON.stringify(
+                                    requestBody
+                                )
+
+                        }
+                    );
+
+
+                console.log(
+                    "CREATE EVENT HTTP STATUS:",
+                    response.status
+                );
+
+
+                let data;
+
+
+                try {
+
+                    data =
+                        await response.json();
+
+                } catch (jsonError) {
+
+                    console.error(
+                        "RESPONSE JSON ERROR:",
+                        jsonError
+                    );
+
+                    throw new Error(
+                        "Server returned an invalid response."
+                    );
+
+                }
+
+
+                console.log(
+                    "CREATE EVENT RESPONSE:",
+                    data
+                );
+
+
+                /* ======================================
+                   AUTH ERROR
+                ====================================== */
+
+                if (
+                    response.status === 401 ||
+                    response.status === 403
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Access denied. Please login again."
+                    );
+
+                }
+
+
+                /* ======================================
+                   OTHER ERROR
+                ====================================== */
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to create event."
+                    );
+
+                }
+
+
+                /* ======================================
+                   SUCCESS
+                ====================================== */
+
+                console.log(
+                    "EVENT CREATED SUCCESSFULLY:",
+                    data
+                );
+
+
+                showCreateMessage(
+                    "Event created successfully! 🎉",
+                    "success"
+                );
+
+
+                /*
+                 * Clear form only AFTER successful
+                 * server response.
+                 */
+
+                document
+                    .getElementById(
+                        "createEventForm"
+                    )
+                    .reset();
+
+
+                document.getElementById(
+                    "fee"
+                ).value = "0";
+
+
+                /* ======================================
+                   REFRESH EVENTS
+                ====================================== */
+
+                await loadMyEvents();
+
+
+            } catch (error) {
+
+                console.error(
+                    "CREATE EVENT ERROR:",
+                    error
+                );
+
+
+                showCreateMessage(
+                    error.message ||
+                    "Failed to create event.",
+                    "error"
+                );
+
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "Create Event";
+
+            }
+
+        }
+
+
+        /* ==================================================
+           TEACHER DASHBOARD STATISTICS
+        ================================================== */
+
+        async function loadDashboardStats() {
+
+            try {
+
+                const response = await fetch(
+                    "/api/auth/teacher-stats",
+                    {
+                        method: "GET",
+                        headers: authHeaders()
+                    }
+                );
+
+                const data = await response.json();
+
+                console.log(
+                    "TEACHER DASHBOARD STATS:",
+                    data
+                );
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message ||
+                        "Unable to load dashboard statistics."
+                    );
+                }
+
+                const stats = data.stats || {};
+
+                document.getElementById(
+                    "totalStudents"
+                ).textContent =
+                    Number(stats.totalStudents || 0);
+
+                document.getElementById(
+                    "totalTeachers"
+                ).textContent =
+                    Number(stats.totalTeachers || 0);
+
+                document.getElementById(
+                    "totalRegistrations"
+                ).textContent =
+                    Number(stats.totalRegistrations || 0);
+
+                document.getElementById(
+                    "totalPayments"
+                ).textContent =
+                    Number(stats.totalPayments || 0);
+
+                document.getElementById(
+                    "totalRevenue"
+                ).textContent =
+                    "₹" +
+                    Number(
+                        stats.totalRevenue || 0
+                    ).toLocaleString("en-IN");
+
+            } catch (error) {
+
+                console.error(
+                    "DASHBOARD STATS ERROR:",
+                    error
+                );
+
+                // Keep the event dashboard usable even if
+                // statistics fail to load.
+                document.getElementById(
+                    "totalStudents"
+                ).textContent = "—";
+
+                document.getElementById(
+                    "totalTeachers"
+                ).textContent = "—";
+
+                document.getElementById(
+                    "totalRegistrations"
+                ).textContent = "—";
+
+                document.getElementById(
+                    "totalPayments"
+                ).textContent = "—";
+
+                document.getElementById(
+                    "totalRevenue"
+                ).textContent = "—";
+            }
+        }
+
+
+        /* ==================================================
+           LOAD MY EVENTS
+        ================================================== */
+
+        async function loadMyEvents() {
+
+            const container =
+                document.getElementById(
+                    "eventsContainer"
+                );
+
+
+            container.innerHTML = `
+                <div class="empty">
+                    Loading events...
+                </div>
+            `;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/events/my-events",
+                        {
+
+                            method: "GET",
+
+                            headers:
+                                authHeaders()
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "MY EVENTS RESPONSE:",
+                    data
+                );
+
+
+                if (
+                    response.status === 401 ||
+                    response.status === 403
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Access denied."
+                    );
+
+                }
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to load events."
+                    );
+
+                }
+
+
+                const events =
+                    Array.isArray(
+                        data.events
+                    )
+                        ? data.events
+                        : [];
+
+
+                document.getElementById(
+                    "eventCount"
+                ).textContent =
+                    events.length;
+
+                // Refresh registrations/payments/revenue
+                // after every event refresh.
+                loadDashboardStats();
+
+
+                const now =
+                    new Date();
+
+
+                const upcoming =
+                    events.filter(
+                        event => {
+
+                            const eventDate =
+                                new Date(
+                                    event.event_date
+                                );
+
+
+                            return (
+                                !Number.isNaN(
+                                    eventDate.getTime()
+                                ) &&
+                                eventDate >= now
+                            );
+
+                        }
+                    );
+
+
+                document.getElementById(
+                    "upcomingCount"
+                ).textContent =
+                    upcoming.length;
+
+
+                if (
+                    events.length === 0
+                ) {
+
+                    container.innerHTML = `
+                        <div class="empty">
+                            You have not created any events yet.
+                        </div>
+                    `;
+
+
+                    document.getElementById(
+                        "participantCount"
+                    ).textContent = "0";
+
+
+                    return;
+
+                }
+
+
+                container.innerHTML = `
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Event
+                                </th>
+
+                                <th>
+                                    Venue
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Capacity
+                                </th>
+
+                                <th>
+                                    Fee
+                                </th>
+
+                                <th>
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${events
+                                .map(
+                                    event =>
+                                        eventRow(
+                                            event
+                                        )
+                                )
+                                .join("")}
+
+                        </tbody>
+
+                    </table>
+
+                `;
+
+
+                await calculateParticipantTotal(
+                    events
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "LOAD EVENTS ERROR:",
+                    error
+                );
+
+
+                container.innerHTML = `
+
+                    <div class="empty">
+
+                        Unable to load your events.
+
+                        <br><br>
+
+                        ${escapeHTML(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+        }
+
+
+        /* ==================================================
+           EVENT ROW
+        ================================================== */
+
+        function eventRow(event) {
+
+            const eventTitle =
+                escapeHTML(
+                    event.title
+                );
+
+
+            const eventVenue =
+                escapeHTML(
+                    event.venue
+                );
+
+
+            const eventDate =
+                escapeHTML(
+                    formatDate(
+                        event.event_date
+                    )
+                );
+
+
+            const capacity =
+                escapeHTML(
+                    String(
+                        event.max_participants
+                    )
+                );
+
+
+            const fee =
+                Number(
+                    event.fee || 0
+                ).toFixed(2);
+
+
+            return `
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+                            ${eventTitle}
+                        </strong>
+
+                    </td>
+
+
+                    <td>
+                        ${eventVenue}
+                    </td>
+
+
+                    <td>
+                        ${eventDate}
+                    </td>
+
+
+                    <td>
+                        ${capacity}
+                    </td>
+
+
+                    <td>
+                        ₹${fee}
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="action-btn view-btn"
+                            data-action="participants"
+                            data-id="${event.id}"
+                            data-title="${escapeHTML(
+                                event.title
+                            )}">
+
+                            Participants
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="action-btn edit-btn"
+                            data-action="edit"
+                            data-id="${event.id}">
+
+                            Edit
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="action-btn delete-btn"
+                            data-action="delete"
+                            data-id="${event.id}">
+
+                            Delete
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+        /* ==================================================
+           PARTICIPANT TOTAL
+        ================================================== */
+
+        async function calculateParticipantTotal(
+            events
+        ) {
+
+            let total = 0;
+
+
+            for (
+                const event of events
+            ) {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            `/api/events/${event.id}/participants`,
+                            {
+
+                                method: "GET",
+
+                                headers:
+                                    authHeaders()
+
+                            }
+                        );
+
+
+                    if (!response.ok) {
+                        continue;
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    total +=
+                        Number(
+                            data.total_participants ||
+                            0
+                        );
+
+                } catch (error) {
+
+                    console.error(
+                        "PARTICIPANT COUNT ERROR:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            document.getElementById(
+                "participantCount"
+            ).textContent =
+                total;
+
+        }
+
+
+        /* ==================================================
+           VIEW PARTICIPANTS
+        ================================================== */
+
+        async function viewParticipants(
+            eventId,
+            title
+        ) {
+
+            const box =
+                document.getElementById(
+                    "participantsBox"
+                );
+
+
+            const container =
+                document.getElementById(
+                    "participantsContainer"
+                );
+
+
+            document.getElementById(
+                "participantsTitle"
+            ).textContent =
+                `${title} - Participants`;
+
+
+            box.style.display =
+                "block";
+
+
+            container.innerHTML = `
+
+                <div class="empty">
+                    Loading participants...
+                </div>
+
+            `;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/events/${eventId}/participants`,
+                        {
+
+                            method: "GET",
+
+                            headers:
+                                authHeaders()
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to load participants."
+                    );
+
+                }
+
+
+                const participants =
+                    Array.isArray(
+                        data.participants
+                    )
+                        ? data.participants
+                        : [];
+
+
+                if (
+                    participants.length === 0
+                ) {
+
+                    container.innerHTML = `
+
+                        <div class="empty">
+
+                            No students registered
+                            for this event yet.
+
+                        </div>
+
+                    `;
+
+                    return;
+
+                }
+
+
+                container.innerHTML = `
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Registration ID
+                                </th>
+
+                                <th>
+                                    Student Name
+                                </th>
+
+                                <th>
+                                    Email
+                                </th>
+
+                                <th>
+                                    Role
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            ${participants
+                                .map(
+                                    participant => `
+
+                                        <tr>
+
+                                            <td>
+                                                #${escapeHTML(
+                                                    String(
+                                                        participant.registration_id
+                                                    )
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                ${escapeHTML(
+                                                    participant.student_name
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                ${escapeHTML(
+                                                    participant.student_email
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                ${escapeHTML(
+                                                    participant.student_role
+                                                )}
+                                            </td>
+
+                                        </tr>
+
+                                    `
+                                )
+                                .join("")}
+
+                        </tbody>
+
+                    </table>
+
+                `;
+
+
+            } catch (error) {
+
+                console.error(
+                    "PARTICIPANTS ERROR:",
+                    error
+                );
+
+
+                container.innerHTML = `
+
+                    <div class="empty">
+
+                        ${escapeHTML(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+        }
+
+
+        /* ==================================================
+           CLOSE PARTICIPANTS
+        ================================================== */
+
+        function closeParticipants() {
+
+            document.getElementById(
+                "participantsBox"
+            ).style.display =
+                "none";
+
+        }
+
+
+        /* ==================================================
+           OPEN EDIT MODAL
+        ================================================== */
+
+        async function openEditModal(
+            eventId
+        ) {
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/events/${eventId}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to load event."
+                    );
+
+                }
+
+
+                const event =
+                    data.event;
+
+
+                document.getElementById(
+                    "edit_id"
+                ).value =
+                    event.id;
+
+
+                document.getElementById(
+                    "edit_title"
+                ).value =
+                    event.title || "";
+
+
+                document.getElementById(
+                    "edit_description"
+                ).value =
+                    event.description || "";
+
+
+                document.getElementById(
+                    "edit_venue"
+                ).value =
+                    event.venue || "";
+
+
+                document.getElementById(
+                    "edit_event_date"
+                ).value =
+                    convertToDateTimeLocal(
+                        event.event_date
+                    );
+
+
+                document.getElementById(
+                    "edit_max_participants"
+                ).value =
+                    event.max_participants || "";
+
+
+                document.getElementById(
+                    "edit_fee"
+                ).value =
+                    event.fee || 0;
+
+
+                document.getElementById(
+                    "editModal"
+                ).style.display =
+                    "flex";
+
+
+            } catch (error) {
+
+                console.error(
+                    "EDIT LOAD ERROR:",
+                    error
+                );
+
+
+                alert(
+                    error.message ||
+                    "Unable to load event."
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           UPDATE EVENT
+        ================================================== */
+
+        async function updateEvent(
+            event
+        ) {
+
+            event.preventDefault();
+
+
+            const id =
+                document.getElementById(
+                    "edit_id"
+                ).value;
+
+
+            const button =
+                document.getElementById(
+                    "saveButton"
+                );
+
+
+            button.disabled =
+                true;
+
+
+            button.textContent =
+                "Saving...";
+
+
+            try {
+
+                const requestBody = {
+
+                    title:
+                        document
+                            .getElementById(
+                                "edit_title"
+                            )
+                            .value
+                            .trim(),
+
+                    description:
+                        document
+                            .getElementById(
+                                "edit_description"
+                            )
+                            .value
+                            .trim(),
+
+                    venue:
+                        document
+                            .getElementById(
+                                "edit_venue"
+                            )
+                            .value
+                            .trim(),
+
+                    event_date:
+                        document
+                            .getElementById(
+                                "edit_event_date"
+                            )
+                            .value,
+
+                    max_participants:
+                        Number(
+                            document
+                                .getElementById(
+                                    "edit_max_participants"
+                                )
+                                .value
+                        ),
+
+                    fee:
+                        Number(
+                            document
+                                .getElementById(
+                                    "edit_fee"
+                                )
+                                .value || 0
+                        )
+
+                };
+
+
+                const response =
+                    await fetch(
+                        `/api/events/${id}`,
+                        {
+
+                            method: "PUT",
+
+                            headers:
+                                authHeaders(),
+
+                            body:
+                                JSON.stringify(
+                                    requestBody
+                                )
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "UPDATE EVENT RESPONSE:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to update event."
+                    );
+
+                }
+
+
+                alert(
+                    "Event updated successfully."
+                );
+
+
+                closeEditModal();
+
+                await loadMyEvents();
+
+
+            } catch (error) {
+
+                console.error(
+                    "UPDATE EVENT ERROR:",
+                    error
+                );
+
+
+                alert(
+                    error.message ||
+                    "Failed to update event."
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "Save Changes";
+
+            }
+
+        }
+
+
+        /* ==================================================
+           DELETE EVENT
+        ================================================== */
+
+        async function deleteEvent(
+            eventId
+        ) {
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to delete this event?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/events/${eventId}`,
+                        {
+
+                            method: "DELETE",
+
+                            headers:
+                                authHeaders()
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "DELETE EVENT RESPONSE:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to delete event."
+                    );
+
+                }
+
+
+                alert(
+                    "Event deleted successfully."
+                );
+
+
+                closeParticipants();
+
+                await loadMyEvents();
+
+
+            } catch (error) {
+
+                console.error(
+                    "DELETE EVENT ERROR:",
+                    error
+                );
+
+
+                alert(
+                    error.message ||
+                    "Failed to delete event."
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           CLOSE EDIT MODAL
+        ================================================== */
+
+        function closeEditModal() {
+
+            document.getElementById(
+                "editModal"
+            ).style.display =
+                "none";
+
+        }
+
+
+        /* ==================================================
+           DELETE ACCOUNT
+        ================================================== */
+
+        async function deleteAccount() {
+
+            const confirmed = confirm(
+                "WARNING! This will permanently delete your EventX account and account-related data. This action cannot be undone.\\n\\nAre you sure you want to delete your account?"
+            );
+
+            if (!confirmed) return;
+
+            const secondConfirm = confirm(
+                "Final confirmation: Delete your EventX account permanently?"
+            );
+
+            if (!secondConfirm) return;
+
+            const currentToken = localStorage.getItem("token");
+
+            if (!currentToken) {
+                alert("Your login session has expired. Please login again.");
+                window.location.href = "/";
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
+                    "/api/auth/delete-account",
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${currentToken}`
+                        }
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || "Unable to delete account."
+                    );
+                }
+
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("authToken");
+
+                alert("Your EventX account has been deleted successfully.");
+                window.location.href = "/";
+
+            } catch (error) {
+
+                console.error("DELETE ACCOUNT ERROR:", error);
+
+                alert(
+                    error.message ||
+                    "Account deletion failed. Please try again."
+                );
+            }
+        }
+
+
+    /* ==========================================
+   LOGOUT
+========================================== */
+
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.href = "/";
+}
+
+        /* ==================================================
+           DATE FORMAT
+        ================================================== */
+
+        function formatDate(
+            value
+        ) {
+
+            if (!value) {
+                return "N/A";
+            }
+
+
+            const date =
+                new Date(value);
+
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return String(value);
+
+            }
+
+
+            return date.toLocaleString(
+                "en-IN",
+                {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           DATETIME LOCAL
+        ================================================== */
+
+        function convertToDateTimeLocal(
+            value
+        ) {
+
+            if (!value) {
+                return "";
+            }
+
+
+            const date =
+                new Date(value);
+
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return "";
+
+            }
+
+
+            const year =
+                date.getFullYear();
+
+
+            const month =
+                String(
+                    date.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const day =
+                String(
+                    date.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const hours =
+                String(
+                    date.getHours()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const minutes =
+                String(
+                    date.getMinutes()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        }
+
+
+        /* ==================================================
+           ESCAPE HTML
+        ================================================== */
+
+        function escapeHTML(
+            value
+        ) {
+
+            return String(
+                value ?? ""
+            )
+
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* ==================================================
+           EVENT BUTTON HANDLER
+        ================================================== */
+
+        function setupEventActions() {
+
+            const container =
+                document.getElementById(
+                    "eventsContainer"
+                );
+
+
+            container.addEventListener(
+                "click",
+                function(event) {
+
+                    const button =
+                        event.target.closest(
+                            "button[data-action]"
+                        );
+
+
+                    if (!button) {
+                        return;
+                    }
+
+
+                    const action =
+                        button.dataset.action;
+
+
+                    const eventId =
+                        button.dataset.id;
+
+
+                    if (
+                        action ===
+                        "participants"
+                    ) {
+
+                        viewParticipants(
+                            eventId,
+                            button.dataset.title ||
+                            "Event"
+                        );
+
+                    }
+
+
+                    else if (
+                        action === "edit"
+                    ) {
+
+                        openEditModal(
+                            eventId
+                        );
+
+                    }
+
+
+                    else if (
+                        action === "delete"
+                    ) {
+
+                        deleteEvent(
+                            eventId
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           INITIALIZE EVERYTHING
+        ================================================== */
+
+        function initializeDashboard() {
+
+            console.log(
+                "EVENTX TEACHER DASHBOARD INITIALIZED"
+            );
+
+
+            displayTeacher();
+
+
+            setupEventActions();
+
+
+            /* ======================================
+               CREATE EVENT FORM LISTENER
+            ====================================== */
+
+            const createForm =
+                document.getElementById(
+                    "createEventForm"
+                );
+
+
+            if (!createForm) {
+
+                console.error(
+                    "CREATE EVENT FORM NOT FOUND"
+                );
+
+            } else {
+
+                createForm.addEventListener(
+                    "submit",
+                    createEvent
+                );
+
+
+                console.log(
+                    "CREATE EVENT SUBMIT LISTENER ATTACHED"
+                );
+
+            }
+
+
+            /* ======================================
+               EDIT FORM LISTENER
+            ====================================== */
+
+            const editForm =
+                document.getElementById(
+                    "editEventForm"
+                );
+
+
+            if (editForm) {
+
+                editForm.addEventListener(
+                    "submit",
+                    updateEvent
+                );
+
+            }
+
+
+            /* ======================================
+               BUTTON LISTENERS
+            ====================================== */
+
+            document
+                .getElementById(
+                    "logoutButton"
+                )
+                .addEventListener(
+                    "click",
+                    logout
+                );
+
+
+            document
+                .getElementById(
+                    "refreshEventsButton"
+                )
+                .addEventListener(
+                    "click",
+                    loadMyEvents
+                );
+
+
+            document
+                .getElementById(
+                    "closeParticipantsButton"
+                )
+                .addEventListener(
+                    "click",
+                    closeParticipants
+                );
+
+
+            document
+                .getElementById(
+                    "modalCloseButton"
+                )
+                .addEventListener(
+                    "click",
+                    closeEditModal
+                );
+
+
+            document
+                .getElementById(
+                    "cancelEditButton"
+                )
+                .addEventListener(
+                    "click",
+                    closeEditModal
+                );
+
+
+            /* ======================================
+               LOAD EVENTS
+            ====================================== */
+
+            loadMyEvents();
+
+        }
+
+
+        /* ==================================================
+           START AFTER DOM LOAD
+        ================================================== */
+
+        if (
+            document.readyState ===
+            "loading"
+        ) {
+
+            document.addEventListener(
+                "DOMContentLoaded",
+                initializeDashboard
+            );
+
+        } else {
+
+            initializeDashboard();
+
+        }
+
+    </script>
+
+</body>
+
+</html>

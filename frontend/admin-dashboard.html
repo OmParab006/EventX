@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventX - Faculty & Admin Master Hub</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --accent: #8b5cf6;
+            --bg-main: #090d16;
+            --bg-sidebar: #0f172a;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 10px 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .brand-logo span {
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .nav-item button:hover, .nav-item.active button {
+            background: rgba(37, 99, 235, 0.15);
+            color: #93c5fd;
+        }
+
+        .nav-item.active button {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .sidebar-footer {
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .page-header-title {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #c084fc;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .content-area {
+            padding: 32px;
+        }
+
+        /* UI Elements */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* KPI Stats Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .kpi-blue { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+        .kpi-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; }
+        .kpi-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .kpi-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        .kpi-info h3 {
+            font-size: 26px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .kpi-info p {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Content Card / Table */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 30px;
+        }
+
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .card-header-row h2 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .search-input {
+            padding: 9px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            min-width: 240px;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .custom-table th {
+            padding: 12px 14px;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .custom-table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .custom-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: white;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-student { background: rgba(37, 99, 235, 0.15); color: #93c5fd; }
+        .badge-admin { background: rgba(139, 92, 246, 0.15); color: #c084fc; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 580px;
+            padding: 30px;
+            position: relative;
+            transform: scale(0.92);
+            transition: transform 0.25s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-muted);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-info { background: #2563eb; }
+
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div>
+                <a href="/" class="brand-logo">
+                    <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+                    Event<span>X</span>
+                </a>
+
+                <ul class="nav-menu">
+                    <li class="nav-item active" id="navItemOverview">
+                        <button onclick="switchView('overview')">
+                            <i class="fa-solid fa-chart-pie"></i> Overview & Analytics
+                        </button>
+                    </li>
+                    <li class="nav-item" id="navItemEvents">
+                        <button onclick="switchView('events')">
+                            <i class="fa-solid fa-calendar-days"></i> Manage Events
+                        </button>
+                    </li>
+                    <li class="nav-item" id="navItemUsers">
+                        <button onclick="switchView('users')">
+                            <i class="fa-solid fa-users"></i> Manage Users
+                        </button>
+                    </li>
+                    <li class="nav-item" id="navItemRegistrations">
+                        <button onclick="switchView('registrations')">
+                            <i class="fa-solid fa-ticket"></i> All Registrations
+                        </button>
+                    </li>
+                    <li class="nav-item" id="navItemPayments">
+                        <button onclick="switchView('payments')">
+                            <i class="fa-solid fa-credit-card"></i> Payment Logs
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-danger" style="width: 100%;" onclick="logout()">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <div class="main-wrapper">
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <h1 class="page-header-title" id="pageTitle">Dashboard Overview</h1>
+
+                <div class="topbar-actions">
+                    <div class="admin-pill">
+                        <i class="fa-solid fa-shield-halved"></i> Faculty Admin
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateEventModal()">
+                        <i class="fa-solid fa-plus"></i> Create Event
+                    </button>
+                </div>
+            </header>
+
+            <main class="content-area">
+                <!-- ================================================= -->
+                <!-- VIEW 1: OVERVIEW & ANALYTICS                      -->
+                <!-- ================================================= -->
+                <div id="viewOverview">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon kpi-blue"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <div class="kpi-info">
+                                <h3 id="kpiStudents">0</h3>
+                                <p>Total Students</p>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon kpi-purple"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="kpi-info">
+                                <h3 id="kpiEvents">0</h3>
+                                <p>Campus Events</p>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon kpi-green"><i class="fa-solid fa-ticket"></i></div>
+                            <div class="kpi-info">
+                                <h3 id="kpiRegistrations">0</h3>
+                                <p>Total Registrations</p>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon kpi-amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="kpi-info">
+                                <h3 id="kpiRevenue">₹0</h3>
+                                <p>Total Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <h2>⚡ Recent Student Registrations</h2>
+                            <button class="btn btn-secondary" onclick="switchView('registrations')">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Email</th>
+                                        <th>Event Title</th>
+                                        <th>Status</th>
+                                        <th>Fee</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentRegistrationsTable">
+                                    <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- VIEW 2: MANAGE EVENTS                             -->
+                <!-- ================================================= -->
+                <div id="viewEvents" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <h2>Campus Events Roster</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="search-input" id="eventTableSearch" placeholder="Search event or venue..." onkeyup="filterEventsTable()">
+                                <button class="btn btn-primary" onclick="openCreateEventModal()"><i class="fa-solid fa-plus"></i> New Event</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event Title</th>
+                                        <th>Category</th>
+                                        <th>Date & Time</th>
+                                        <th>Venue</th>
+                                        <th>Capacity</th>
+                                        <th>Fee</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventsTableBody">
+                                    <tr><td colspan="7" style="text-align: center; padding: 20px;">Loading events...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- VIEW 3: MANAGE USERS                              -->
+                <!-- ================================================= -->
+                <div id="viewUsers" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <h2>Registered Users</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="search-input" id="userTableSearch" placeholder="Search user name or email..." onkeyup="filterUsersTable()">
+                                <button class="btn btn-primary" onclick="openCreateUserModal()"><i class="fa-solid fa-user-plus"></i> Add User</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Registrations</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- VIEW 4: ALL REGISTRATIONS                         -->
+                <!-- ================================================= -->
+                <div id="viewRegistrations" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <h2>All Event Registrations</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="search-input" id="regTableSearch" placeholder="Search student or event..." onkeyup="filterRegTable()">
+                                <button class="btn btn-success" onclick="exportRegistrationsCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Reg ID</th>
+                                        <th>Student</th>
+                                        <th>Email</th>
+                                        <th>Event Title</th>
+                                        <th>Fee</th>
+                                        <th>Registration</th>
+                                        <th>Payment</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="registrationsTableBody">
+                                    <tr><td colspan="8" style="text-align: center; padding: 20px;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- VIEW 5: PAYMENT LOGS                              -->
+                <!-- ================================================= -->
+                <div id="viewPayments" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <h2>Transaction & Payment History</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="search-input" id="payTableSearch" placeholder="Search student or txn id..." onkeyup="filterPayTable()">
+                                <button class="btn btn-success" onclick="exportPaymentsCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Txn ID</th>
+                                        <th>Student</th>
+                                        <th>Event</th>
+                                        <th>Amount</th>
+                                        <th>Gateway</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentsTableBody">
+                                    <tr><td colspan="7" style="text-align: center; padding: 20px;">Loading payments...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- CREATE / EDIT EVENT MODAL                         -->
+    <!-- ================================================= -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeEventModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;" id="eventModalTitle">Create Campus Event</h3>
+            
+            <form onsubmit="handleSaveEvent(event)">
+                <input type="hidden" id="editEventId">
+                <div class="form-group">
+                    <label>Event Title</label>
+                    <input type="text" class="form-control" id="evTitle" placeholder="e.g. CodeSprint Hackathon 2026" required>
+                </div>
+
+                <div class="form-grid">
+                    <div>
+                        <label>Category</label>
+                        <select class="form-control" id="evCategory">
+                            <option value="Technical">💻 Technical</option>
+                            <option value="Workshop">🤖 Workshop</option>
+                            <option value="Cultural">🎭 Cultural</option>
+                            <option value="Sports">🏆 Sports</option>
+                            <option value="Seminar">📢 Seminar</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Registration Fee (₹)</label>
+                        <input type="number" class="form-control" id="evFee" placeholder="0 for Free" min="0" step="1" value="0" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div>
+                        <label>Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="evDate" required>
+                    </div>
+                    <div>
+                        <label>Max Participant Capacity</label>
+                        <input type="number" class="form-control" id="evCapacity" placeholder="e.g. 100" min="1" value="100" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Event Venue / Hall</label>
+                    <input type="text" class="form-control" id="evVenue" placeholder="e.g. Seminar Hall A, Einstein Block" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Event Description</label>
+                    <textarea class="form-control" id="evDesc" rows="3" placeholder="Brief outline of the event, eligibility, and rules..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Save Event</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- ENROLLED PARTICIPANTS & ATTENDANCE SHEET MODAL     -->
+    <!-- ================================================= -->
+    <div class="modal-overlay" id="participantsModal">
+        <div class="modal-box" style="max-width: 780px;">
+            <button class="close-btn" onclick="closeParticipantsModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-right: 30px;">
+                <div>
+                    <h3 style="font-size: 20px; font-weight: 800;" id="partEventTitle">Event Participants</h3>
+                    <p style="color: var(--text-muted); font-size: 13px;" id="partEventMeta">Date & Venue</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-success" onclick="exportParticipantsCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    <button class="btn btn-secondary" onclick="printAttendanceSheet()"><i class="fa-solid fa-print"></i> Print Sheet</button>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 400px;" id="printableAttendanceArea">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Registration Date</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantsTableBody">
+                        <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading participants...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- ADD USER MODAL                                    -->
+    <!-- ================================================= -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeUserModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">Create User Account</h3>
+            
+            <form onsubmit="handleCreateUser(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="newUserName" placeholder="e.g. Priya Sharma" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-control" id="newUserEmail" placeholder="e.g. priya@college.edu" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="newUserPassword" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select class="form-control" id="newUserRole">
+                        <option value="student">👨‍🎓 Student</option>
+                        <option value="admin">🛡️ Faculty / Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Create User</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toastBox">
+        <i class="fa-solid fa-circle-check" id="toastIcon"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- JS SCRIPT -->
+    <script>
+        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+        let currentUser = null;
+
+        let allEvents = [];
+        let allUsers = [];
+        let allRegistrations = [];
+        let allPayments = [];
+        let currentEventParticipants = [];
+        let currentEventObj = null;
+
+        // Verify Admin/Faculty Authentication
+        if (!token || !userStr) {
+            window.location.href = '/';
+        } else {
+            try {
+                currentUser = JSON.parse(userStr);
+                if (currentUser.role !== 'admin' && currentUser.role !== 'teacher') {
+                    window.location.href = '/dashboard.html';
+                }
+            } catch(e) {
+                window.location.href = '/';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardStats();
+            loadEventsData();
+            loadUsersData();
+            loadRegistrationsData();
+            loadPaymentsData();
+        });
+
+        function switchView(view) {
+            document.querySelectorAll('.nav-menu .nav-item').forEach(item => item.classList.remove('active'));
+            ['Overview', 'Events', 'Users', 'Registrations', 'Payments'].forEach(v => {
+                document.getElementById(`view${v}`).style.display = 'none';
+            });
+
+            if (view === 'overview') {
+                document.getElementById('navItemOverview').classList.add('active');
+                document.getElementById('viewOverview').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
+                loadDashboardStats();
+            } else if (view === 'events') {
+                document.getElementById('navItemEvents').classList.add('active');
+                document.getElementById('viewEvents').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Manage Campus Events';
+                loadEventsData();
+            } else if (view === 'users') {
+                document.getElementById('navItemUsers').classList.add('active');
+                document.getElementById('viewUsers').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Manage User Accounts';
+                loadUsersData();
+            } else if (view === 'registrations') {
+                document.getElementById('navItemRegistrations').classList.add('active');
+                document.getElementById('viewRegistrations').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Event Registrations';
+                loadRegistrationsData();
+            } else if (view === 'payments') {
+                document.getElementById('navItemPayments').classList.add('active');
+                document.getElementById('viewPayments').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Payment & Transaction Logs';
+                loadPaymentsData();
+            }
+        }
+
+        // =================================================
+        // LOAD DATA
+        // =================================================
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch('/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.stats) {
+                    document.getElementById('kpiStudents').textContent = data.stats.students;
+                    document.getElementById('kpiEvents').textContent = data.stats.events;
+                    document.getElementById('kpiRegistrations').textContent = data.stats.registrations;
+                    document.getElementById('kpiRevenue').textContent = `₹${data.stats.revenue}`;
+
+                    // Render recent registrations
+                    const tbody = document.getElementById('recentRegistrationsTable');
+                    if (data.stats.recentRegistrations && data.stats.recentRegistrations.length > 0) {
+                        tbody.innerHTML = data.stats.recentRegistrations.map(r => `
+                            <tr>
+                                <td><strong>${escapeHTML(r.student_name)}</strong></td>
+                                <td>${escapeHTML(r.student_email)}</td>
+                                <td>${escapeHTML(r.event_title)}</td>
+                                <td><span class="badge badge-success">${r.registration_status}</span></td>
+                                <td>${Number(r.fee) === 0 ? 'FREE' : '₹' + r.fee}</td>
+                                <td>${new Date(r.registered_at).toLocaleDateString()}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No registrations yet.</td></tr>';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadEventsData() {
+            try {
+                const res = await fetch('/api/events');
+                const data = await res.json();
+                if (data.success) {
+                    allEvents = data.events;
+                    renderEventsTable(allEvents);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderEventsTable(events) {
+            const tbody = document.getElementById('eventsTableBody');
+            if (!events || events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No events found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = events.map(ev => {
+                const dateObj = new Date(ev.event_date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                return `
+                    <tr>
+                        <td><strong>${escapeHTML(ev.title)}</strong></td>
+                        <td><span class="badge badge-student">${escapeHTML(ev.category || 'Technical')}</span></td>
+                        <td>${formattedDate}</td>
+                        <td>${escapeHTML(ev.venue)}</td>
+                        <td><strong>${ev.registered_count}</strong> / ${ev.max_participants}</td>
+                        <td><strong>${ev.fee === 0 ? 'FREE' : '₹' + ev.fee}</strong></td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="viewParticipants(${ev.id})">
+                                <i class="fa-solid fa-users"></i> Attendance (${ev.registered_count})
+                            </button>
+                            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="openEditEventModal(${ev.id})">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 11px;" onclick="deleteEvent(${ev.id}, '${escapeHTML(ev.title)}')">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadUsersData() {
+            try {
+                const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    allUsers = data.users;
+                    renderUsersTable(allUsers);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('usersTableBody');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No users found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td><strong>${escapeHTML(u.name)}</strong></td>
+                    <td>${escapeHTML(u.email)}</td>
+                    <td>
+                        <span class="badge ${u.role === 'admin' || u.role === 'teacher' ? 'badge-admin' : 'badge-student'}">
+                            ${u.role === 'admin' ? 'Faculty Admin' : 'Student'}
+                        </span>
+                    </td>
+                    <td>${u.registrations_count || 0} Events</td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="toggleUserRole(${u.id}, '${u.role}')">
+                            <i class="fa-solid fa-arrows-rotate"></i> Change Role
+                        </button>
+                        ${u.id !== currentUser.id ? `
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 11px;" onclick="deleteUser(${u.id}, '${escapeHTML(u.name)}')">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadRegistrationsData() {
+            try {
+                const res = await fetch('/api/admin/registrations', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    allRegistrations = data.registrations;
+                    renderRegistrationsTable(allRegistrations);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderRegistrationsTable(registrations) {
+            const tbody = document.getElementById('registrationsTableBody');
+            if (!registrations || registrations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No registrations found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = registrations.map(r => `
+                <tr>
+                    <td>#${r.registration_id}</td>
+                    <td><strong>${escapeHTML(r.student_name)}</strong></td>
+                    <td>${escapeHTML(r.student_email)}</td>
+                    <td>${escapeHTML(r.event_title)}</td>
+                    <td>${Number(r.fee) === 0 ? 'FREE' : '₹' + r.fee}</td>
+                    <td><span class="badge ${r.registration_status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'}">${r.registration_status}</span></td>
+                    <td><span class="badge ${r.payment_status === 'PAID' ? 'badge-success' : (r.payment_status === 'NOT_REQUIRED' ? 'badge-student' : 'badge-warning')}">${r.payment_status}</span></td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 11px;" onclick="cancelRegistrationByAdmin(${r.registration_id})">
+                            <i class="fa-regular fa-trash-can"></i> Revoke
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadPaymentsData() {
+            try {
+                const res = await fetch('/api/admin/payments', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    allPayments = data.payments;
+                    renderPaymentsTable(allPayments);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderPaymentsTable(payments) {
+            const tbody = document.getElementById('paymentsTableBody');
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No payment transactions recorded.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = payments.map(p => `
+                <tr>
+                    <td><code>${escapeHTML(p.transaction_id || p.razorpay_order_id || 'TXN-' + p.payment_id)}</code></td>
+                    <td><strong>${escapeHTML(p.student_name)}</strong></td>
+                    <td>${escapeHTML(p.event_title)}</td>
+                    <td><strong style="color: #34d399;">₹${p.amount}</strong></td>
+                    <td><span class="badge badge-student">${escapeHTML(p.payment_gateway)}</span></td>
+                    <td><span class="badge badge-success">${p.payment_status}</span></td>
+                    <td>${new Date(p.created_at).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // =================================================
+        // PARTICIPANTS ATTENDANCE SHEET MODAL
+        // =================================================
+        async function viewParticipants(eventId) {
+            try {
+                const res = await fetch(`/api/events/${eventId}/participants`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    currentEventObj = data.event;
+                    currentEventParticipants = data.participants;
+
+                    document.getElementById('partEventTitle').textContent = `Attendance: ${data.event.title}`;
+                    document.getElementById('partEventMeta').textContent = `Date: ${new Date(data.event.event_date).toLocaleString()} | Venue: ${data.event.venue} | Total: ${data.total_participants} Registered`;
+
+                    const tbody = document.getElementById('participantsTableBody');
+                    if (data.participants.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No students registered for this event yet.</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.participants.map((p, idx) => `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td><strong>${escapeHTML(p.student_name)}</strong></td>
+                                <td>${escapeHTML(p.student_email)}</td>
+                                <td>${new Date(p.registered_at).toLocaleDateString()}</td>
+                                <td><span class="badge badge-success">${p.registration_status}</span></td>
+                                <td><span class="badge ${p.payment_status === 'PAID' ? 'badge-success' : 'badge-student'}">${p.payment_status}</span></td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    document.getElementById('participantsModal').classList.add('active');
+                }
+            } catch (e) {
+                showToast('Failed to load participants.', 'error');
+            }
+        }
+
+        function closeParticipantsModal() {
+            document.getElementById('participantsModal').classList.remove('active');
+        }
+
+        function printAttendanceSheet() {
+            window.print();
+        }
+
+        function exportParticipantsCSV() {
+            if (!currentEventParticipants || currentEventParticipants.length === 0) {
+                showToast('No participants to export.', 'info');
+                return;
+            }
+
+            let csv = "Index,Student Name,Email,Registration Status,Payment Status,Registration Date\n";
+            currentEventParticipants.forEach((p, idx) => {
+                csv += `"${idx + 1}","${p.student_name}","${p.student_email}","${p.registration_status}","${p.payment_status}","${new Date(p.registered_at).toLocaleString()}"\n`;
+            });
+
+            downloadCSV(csv, `Attendance_${currentEventObj ? currentEventObj.title.replace(/[^a-zA-Z0-9]/g, '_') : 'Event'}.csv`);
+        }
+
+        function exportRegistrationsCSV() {
+            if (!allRegistrations || allRegistrations.length === 0) return;
+            let csv = "Reg ID,Student Name,Email,Event Title,Category,Fee,Registration Status,Payment Status,Date\n";
+            allRegistrations.forEach(r => {
+                csv += `"${r.registration_id}","${r.student_name}","${r.student_email}","${r.event_title}","${r.category}","${r.fee}","${r.registration_status}","${r.payment_status}","${new Date(r.registered_at).toLocaleString()}"\n`;
+            });
+            downloadCSV(csv, "All_Event_Registrations.csv");
+        }
+
+        function exportPaymentsCSV() {
+            if (!allPayments || allPayments.length === 0) return;
+            let csv = "Txn ID,Student Name,Email,Event,Amount,Gateway,Status,Date\n";
+            allPayments.forEach(p => {
+                csv += `"${p.transaction_id || p.razorpay_order_id || p.payment_id}","${p.student_name}","${p.student_email}","${p.event_title}","${p.amount}","${p.payment_gateway}","${p.payment_status}","${new Date(p.created_at).toLocaleString()}"\n`;
+            });
+            downloadCSV(csv, "Payment_Transactions_Log.csv");
+        }
+
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('CSV downloaded successfully.', 'success');
+        }
+
+        // =================================================
+        // EVENT CRUD
+        // =================================================
+        function openCreateEventModal() {
+            document.getElementById('eventModalTitle').textContent = 'Create Campus Event';
+            document.getElementById('editEventId').value = '';
+            document.getElementById('evTitle').value = '';
+            document.getElementById('evCategory').value = 'Technical';
+            document.getElementById('evFee').value = '0';
+            document.getElementById('evCapacity').value = '100';
+            document.getElementById('evVenue').value = '';
+            document.getElementById('evDesc').value = '';
+
+            // Default date: tomorrow at 10 AM
+            const tmrw = new Date(Date.now() + 86400000);
+            tmrw.setHours(10, 0, 0, 0);
+            document.getElementById('evDate').value = tmrw.toISOString().slice(0, 16);
+
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        function openEditEventModal(eventId) {
+            const ev = allEvents.find(e => e.id === eventId);
+            if (!ev) return;
+
+            document.getElementById('eventModalTitle').textContent = 'Edit Event';
+            document.getElementById('editEventId').value = ev.id;
+            document.getElementById('evTitle').value = ev.title;
+            document.getElementById('evCategory').value = ev.category || 'Technical';
+            document.getElementById('evFee').value = ev.fee;
+            document.getElementById('evCapacity').value = ev.max_participants;
+            document.getElementById('evVenue').value = ev.venue;
+            document.getElementById('evDesc').value = ev.description || '';
+
+            const d = new Date(ev.event_date);
+            document.getElementById('evDate').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+        }
+
+        async function handleSaveEvent(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editEventId').value;
+            const payload = {
+                title: document.getElementById('evTitle').value.trim(),
+                category: document.getElementById('evCategory').value,
+                fee: Number(document.getElementById('evFee').value),
+                max_participants: Number(document.getElementById('evCapacity').value),
+                venue: document.getElementById('evVenue').value.trim(),
+                description: document.getElementById('evDesc').value.trim(),
+                event_date: document.getElementById('evDate').value
+            };
+
+            try {
+                const url = editId ? `/api/events/${editId}` : '/api/events';
+                const method = editId ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast(editId ? 'Event updated successfully.' : 'Event created successfully!', 'success');
+                    closeEventModal();
+                    await loadEventsData();
+                    await loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Failed to save event.', 'error');
+                }
+            } catch (err) {
+                showToast('Server error.', 'error');
+            }
+        }
+
+        async function deleteEvent(eventId, title) {
+            if (!confirm(`Are you sure you want to delete "${title}"? This will cancel all student registrations for this event.`)) return;
+
+            try {
+                const res = await fetch(`/api/events/${eventId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Event deleted.', 'success');
+                    await loadEventsData();
+                    await loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Delete failed.', 'error');
+                }
+            } catch (e) {
+                showToast('Server error.', 'error');
+            }
+        }
+
+        // =================================================
+        // USER MANAGEMENT
+        // =================================================
+        function openCreateUserModal() {
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserEmail').value = '';
+            document.getElementById('newUserPassword').value = '';
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        async function handleCreateUser(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('newUserName').value.trim(),
+                email: document.getElementById('newUserEmail').value.trim(),
+                password: document.getElementById('newUserPassword').value,
+                role: document.getElementById('newUserRole').value
+            };
+
+            try {
+                const res = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast('User created successfully.', 'success');
+                    closeUserModal();
+                    await loadUsersData();
+                } else {
+                    showToast(data.message || 'Creation failed.', 'error');
+                }
+            } catch (err) {
+                showToast('Server error.', 'error');
+            }
+        }
+
+        async function toggleUserRole(userId, currentRole) {
+            const newRole = (currentRole === 'admin' || currentRole === 'teacher') ? 'student' : 'admin';
+            if (!confirm(`Change user role to ${newRole.toUpperCase()}?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast('User role updated.', 'success');
+                    await loadUsersData();
+                } else {
+                    showToast(data.message || 'Update failed.', 'error');
+                }
+            } catch (e) {
+                showToast('Server error.', 'error');
+            }
+        }
+
+        async function deleteUser(userId, name) {
+            if (!confirm(`Are you sure you want to permanently delete user "${name}"?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast('User deleted.', 'success');
+                    await loadUsersData();
+                } else {
+                    showToast(data.message || 'Delete failed.', 'error');
+                }
+            } catch (e) {
+                showToast('Server error.', 'error');
+            }
+        }
+
+        async function cancelRegistrationByAdmin(regId) {
+            if (!confirm('Are you sure you want to revoke this registration?')) return;
+            try {
+                const res = await fetch(`/api/admin/registrations/${regId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Registration revoked.', 'success');
+                    await loadRegistrationsData();
+                    await loadDashboardStats();
+                }
+            } catch (e) {
+                showToast('Error revoking registration.', 'error');
+            }
+        }
+
+        // =================================================
+        // TABLE SEARCH FILTERS
+        // =================================================
+        function filterEventsTable() {
+            const q = document.getElementById('eventTableSearch').value.toLowerCase().trim();
+            const filtered = allEvents.filter(e => e.title.toLowerCase().includes(q) || e.venue.toLowerCase().includes(q));
+            renderEventsTable(filtered);
+        }
+
+        function filterUsersTable() {
+            const q = document.getElementById('userTableSearch').value.toLowerCase().trim();
+            const filtered = allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+            renderUsersTable(filtered);
+        }
+
+        function filterRegTable() {
+            const q = document.getElementById('regTableSearch').value.toLowerCase().trim();
+            const filtered = allRegistrations.filter(r => r.student_name.toLowerCase().includes(q) || r.event_title.toLowerCase().includes(q));
+            renderRegistrationsTable(filtered);
+        }
+
+        function filterPayTable() {
+            const q = document.getElementById('payTableSearch').value.toLowerCase().trim();
+            const filtered = allPayments.filter(p => p.student_name.toLowerCase().includes(q) || (p.transaction_id && p.transaction_id.toLowerCase().includes(q)));
+            renderPaymentsTable(filtered);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toastBox');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastMsg').textContent = msg;
+
+            toast.className = `toast show toast-${type}`;
+            icon.className = type === 'success' ? 'fa-solid fa-circle-check' : (type === 'error' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-info');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
