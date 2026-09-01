@@ -1025,7 +1025,7 @@
             </div>
 
             <!-- Role Selector -->
-            <div class="role-selector">
+            <div class="role-selector" id="roleSelectorBar">
                 <button type="button" class="role-btn active" id="roleStudentBtn" onclick="selectAuthRole('student')">
                     👨‍🎓 Student
                 </button>
@@ -1049,6 +1049,13 @@
                         <input type="password" id="loginPassword" placeholder="••••••••" required>
                         <i class="fa-regular fa-eye pwd-toggle" onclick="togglePassword('loginPassword', this)"></i>
                     </div>
+                </div>
+
+                <!-- Clearly Visible Forgot Password Link -->
+                <div style="display: flex; justify-content: flex-end; margin-top: -6px; margin-bottom: 18px;">
+                    <button type="button" onclick="openForgotPassword()" style="background: none; border: none; color: #60a5fa; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; text-decoration: none; transition: color 0.2s;">
+                        <i class="fa-solid fa-key" style="font-size: 11px; margin-right: 4px;"></i> Forgot Password?
+                    </button>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-submit" id="loginSubmitBtn">
@@ -1085,6 +1092,103 @@
                 </button>
             </form>
 
+            <!-- ================================================= -->
+            <!-- FORGOT PASSWORD WIZARD (4 STEPS)                  -->
+            <!-- ================================================= -->
+            <div id="forgotPasswordContainer" style="display: none;">
+                
+                <!-- STEP 1: Enter Email -->
+                <form id="forgotStep1" onsubmit="handleSendResetOtp(event)">
+                    <div class="form-group">
+                        <label>Registered Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="forgotEmail" placeholder="Enter your registered email address" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit" id="sendOtpSubmitBtn">
+                        Send Verification Code <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button type="button" onclick="cancelForgotPassword()" style="background: none; border: none; color: #94a3b8; font-size: 13px; cursor: pointer;">
+                            <i class="fa-solid fa-arrow-left"></i> Back to Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <!-- STEP 2: Enter 6-Digit OTP -->
+                <form id="forgotStep2" style="display: none;" onsubmit="handleVerifyResetOtp(event)">
+                    <div style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #93c5fd; text-align: center;">
+                        <i class="fa-regular fa-envelope"></i> Verification code sent to <br><strong id="displayTargetEmail" style="color: white;"></strong>
+                    </div>
+
+                    <div class="form-group">
+                        <label>6-Digit Verification Code</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="forgotOtp" placeholder="123456" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" style="letter-spacing: 8px; font-weight: 700; font-size: 20px; text-align: center;" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; margin-bottom: 18px; font-size: 12px;">
+                        <span id="otpCountdownText" style="color: #94a3b8;"><i class="fa-regular fa-clock"></i> Code expires in 10 mins</span>
+                        <button type="button" id="resendOtpBtn" onclick="resendResetOtp()" disabled style="background: none; border: none; color: #60a5fa; cursor: not-allowed; font-size: 12px; font-weight: 600; opacity: 0.5;">
+                            Resend Code (<span id="resendSeconds">60</span>s)
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit" id="verifyOtpSubmitBtn">
+                        Verify Code <i class="fa-solid fa-check"></i>
+                    </button>
+
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button type="button" onclick="goToForgotStep(1)" style="background: none; border: none; color: #94a3b8; font-size: 13px; cursor: pointer;">
+                            <i class="fa-solid fa-arrow-left"></i> Change Email
+                        </button>
+                    </div>
+                </form>
+
+                <!-- STEP 3: Create New Password -->
+                <form id="forgotStep3" style="display: none;" onsubmit="handleResetPassword(event)">
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="resetNewPassword" placeholder="Minimum 6 characters" minlength="6" required oninput="checkPasswordMatch()">
+                            <i class="fa-regular fa-eye pwd-toggle" onclick="togglePassword('resetNewPassword', this)"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="resetConfirmPassword" placeholder="Confirm your new password" minlength="6" required oninput="checkPasswordMatch()">
+                            <i class="fa-regular fa-eye pwd-toggle" onclick="togglePassword('resetConfirmPassword', this)"></i>
+                        </div>
+                    </div>
+
+                    <div id="pwdMatchNotice" style="font-size: 12px; margin-top: -6px; margin-bottom: 14px; display: none;"></div>
+
+                    <button type="submit" class="btn btn-accent btn-submit" id="resetPasswordSubmitBtn">
+                        Save New Password <i class="fa-solid fa-lock"></i>
+                    </button>
+                </form>
+
+                <!-- STEP 4: Success Message -->
+                <div id="forgotStep4" style="display: none; text-align: center; padding: 15px 0;">
+                    <div style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 26px; color: #34d399;">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h4 style="font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 8px;">Password Reset Successfully!</h4>
+                    <p style="font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px;">
+                        Your account password has been updated. Please sign in with your new password to access EventX.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-submit" onclick="finishPasswordReset()">
+                        Sign In Now <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+            </div>
+
             <div class="auth-message" id="authMsg"></div>
         </div>
     </div>
@@ -1094,6 +1198,8 @@
         let allEvents = [];
         let activeCategory = 'all';
         let currentRole = 'student';
+        let currentResetToken = null;
+        let resendTimerInterval = null;
 
         // Check if already logged in on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -1110,11 +1216,11 @@
                     const user = JSON.parse(userStr);
                     const navActions = document.getElementById('navActions');
                     const targetUrl =
-                        user.role === 'teacher'
+                        user.role === 'teacher' || user.role === 'admin'
                             ? '/teacher-dashboard.html'
                             : '/dashboard.html';
                     navActions.innerHTML = `
-                        <span style="font-size: 14px; color: #94a3b8;"><i class="fa-solid fa-circle-user"></i> ${user.name}</span>
+                        <span style="font-size: 14px; color: #94a3b8;"><i class="fa-solid fa-circle-user"></i> ${escapeHTML(user.name)}</span>
                         <a href="${targetUrl}" class="btn btn-primary">
                             <i class="fa-solid fa-gauge"></i> Open Dashboard
                         </a>
@@ -1266,10 +1372,16 @@
         function closeAuthModal() {
             document.getElementById('authModal').classList.remove('active');
             hideAuthMsg();
+            clearInterval(resendTimerInterval);
         }
 
         function switchAuthTab(tab) {
             hideAuthMsg();
+            document.getElementById('forgotPasswordContainer').style.display = 'none';
+            document.getElementById('roleSelectorBar').style.display = 'grid';
+            document.querySelector('.demo-bar').style.display = 'block';
+            document.querySelector('.auth-tabs').style.display = 'flex';
+
             if (tab === 'login') {
                 document.getElementById('tabLogin').classList.add('active');
                 document.getElementById('tabSignup').classList.remove('active');
@@ -1302,8 +1414,8 @@
                 showAuthMsg("Demo student credentials filled. Click Sign In.", 'success');
             } else {
                 document.getElementById('loginEmail').value = 'teacher@test.com';
-                document.getElementById('loginPassword').value = '';
-                showAuthMsg("Teacher selected. Enter the teacher password and click Sign In.", 'success');
+                document.getElementById('loginPassword').value = 'teacher123';
+                showAuthMsg("Demo teacher credentials filled. Click Sign In.", 'success');
             }
         }
 
@@ -1343,8 +1455,8 @@
                     return;
                 }
 
-                // Make sure the selected role matches the logged-in account.
-                if (currentRole !== data.user.role) {
+                // Match role check
+                if (currentRole !== data.user.role && !(currentRole === 'teacher' && data.user.role === 'admin')) {
                     showAuthMsg(
                         `You selected ${currentRole}, but this account is registered as ${data.user.role}. Please select the correct role.`,
                         'error'
@@ -1361,7 +1473,7 @@
                 showAuthMsg('Login successful! Redirecting...', 'success');
 
                 setTimeout(() => {
-                    if (data.user.role === 'teacher') {
+                    if (data.user.role === 'teacher' || data.user.role === 'admin') {
                         window.location.href = '/teacher-dashboard.html';
                     } else if (data.user.role === 'student') {
                         window.location.href = '/dashboard.html';
@@ -1418,6 +1530,262 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Create Account <i class="fa-solid fa-user-check"></i>';
             }
+        }
+
+        // ==========================================
+        // FORGOT PASSWORD FLOW
+        // ==========================================
+        function openForgotPassword() {
+            hideAuthMsg();
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('roleSelectorBar').style.display = 'none';
+            document.querySelector('.demo-bar').style.display = 'none';
+            document.querySelector('.auth-tabs').style.display = 'none';
+            document.getElementById('forgotPasswordContainer').style.display = 'block';
+
+            // Fill current email if available
+            const currentEmail = document.getElementById('loginEmail').value.trim();
+            if (currentEmail) {
+                document.getElementById('forgotEmail').value = currentEmail;
+            }
+
+            goToForgotStep(1);
+        }
+
+        function cancelForgotPassword() {
+            switchAuthTab('login');
+        }
+
+        function goToForgotStep(step) {
+            hideAuthMsg();
+            document.getElementById('forgotStep1').style.display = step === 1 ? 'block' : 'none';
+            document.getElementById('forgotStep2').style.display = step === 2 ? 'block' : 'none';
+            document.getElementById('forgotStep3').style.display = step === 3 ? 'block' : 'none';
+            document.getElementById('forgotStep4').style.display = step === 4 ? 'block' : 'none';
+
+            if (step === 1) {
+                document.getElementById('authTitle').textContent = 'Reset Password';
+                document.getElementById('authSubtitle').textContent = 'Enter your registered email to receive a verification code';
+                clearInterval(resendTimerInterval);
+            } else if (step === 2) {
+                document.getElementById('authTitle').textContent = 'Enter Verification Code';
+                document.getElementById('authSubtitle').textContent = 'Check your email for the 6-digit security OTP';
+                document.getElementById('displayTargetEmail').textContent = document.getElementById('forgotEmail').value.trim();
+                startResendTimer();
+            } else if (step === 3) {
+                document.getElementById('authTitle').textContent = 'Create New Password';
+                document.getElementById('authSubtitle').textContent = 'Choose a secure password of at least 6 characters';
+                clearInterval(resendTimerInterval);
+            } else if (step === 4) {
+                document.getElementById('authTitle').textContent = 'Success!';
+                document.getElementById('authSubtitle').textContent = 'Your credentials have been updated';
+            }
+        }
+
+        function startResendTimer() {
+            clearInterval(resendTimerInterval);
+            let secondsLeft = 60;
+            const resendBtn = document.getElementById('resendOtpBtn');
+            const secondsSpan = document.getElementById('resendSeconds');
+
+            resendBtn.disabled = true;
+            resendBtn.style.cursor = 'not-allowed';
+            resendBtn.style.opacity = '0.5';
+            secondsSpan.textContent = secondsLeft;
+
+            resendTimerInterval = setInterval(() => {
+                secondsLeft--;
+                secondsSpan.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    clearInterval(resendTimerInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.style.cursor = 'pointer';
+                    resendBtn.style.opacity = '1';
+                    resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Resend Code';
+                }
+            }, 1000);
+        }
+
+        async function handleSendResetOtp(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const btn = document.getElementById('sendOtpSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending Code...';
+            hideAuthMsg();
+
+            try {
+                const res = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json();
+                btn.disabled = false;
+                btn.innerHTML = 'Send Verification Code <i class="fa-solid fa-paper-plane"></i>';
+
+                if (!res.ok || !data.success) {
+                    showAuthMsg(data.message || 'Failed to send verification code.', 'error');
+                    return;
+                }
+
+                showAuthMsg(data.message, 'success');
+                goToForgotStep(2);
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Verification Code <i class="fa-solid fa-paper-plane"></i>';
+                showAuthMsg('Cannot connect to server. Please try again.', 'error');
+            }
+        }
+
+        async function resendResetOtp() {
+            const email = document.getElementById('forgotEmail').value.trim();
+            const resendBtn = document.getElementById('resendOtpBtn');
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                const res = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showAuthMsg('A new verification code has been dispatched.', 'success');
+                    startResendTimer();
+                } else {
+                    showAuthMsg(data.message || 'Failed to resend code.', 'error');
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Resend Code';
+                }
+            } catch (err) {
+                showAuthMsg('Network error. Please try again.', 'error');
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Resend Code';
+            }
+        }
+
+        async function handleVerifyResetOtp(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const otp = document.getElementById('forgotOtp').value.trim();
+            const btn = document.getElementById('verifyOtpSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+            hideAuthMsg();
+
+            try {
+                const res = await fetch('/api/auth/verify-reset-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+
+                const data = await res.json();
+                btn.disabled = false;
+                btn.innerHTML = 'Verify Code <i class="fa-solid fa-check"></i>';
+
+                if (!res.ok || !data.success) {
+                    showAuthMsg(data.message || 'Invalid or expired verification code.', 'error');
+                    return;
+                }
+
+                currentResetToken = data.resetToken;
+                showAuthMsg('Code verified successfully!', 'success');
+                setTimeout(() => goToForgotStep(3), 400);
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = 'Verify Code <i class="fa-solid fa-check"></i>';
+                showAuthMsg('Cannot connect to server.', 'error');
+            }
+        }
+
+        function checkPasswordMatch() {
+            const p1 = document.getElementById('resetNewPassword').value;
+            const p2 = document.getElementById('resetConfirmPassword').value;
+            const notice = document.getElementById('pwdMatchNotice');
+
+            if (!p2) {
+                notice.style.display = 'none';
+                return;
+            }
+
+            notice.style.display = 'block';
+            if (p1 === p2) {
+                notice.style.color = '#34d399';
+                notice.innerHTML = '<i class="fa-solid fa-check"></i> Passwords match';
+            } else {
+                notice.style.color = '#f87171';
+                notice.innerHTML = '<i class="fa-solid fa-xmark"></i> Passwords do not match';
+            }
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const newPassword = document.getElementById('resetNewPassword').value;
+            const confirmPassword = document.getElementById('resetConfirmPassword').value;
+            const btn = document.getElementById('resetPasswordSubmitBtn');
+
+            if (newPassword !== confirmPassword) {
+                showAuthMsg('New password and confirm password do not match.', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAuthMsg('Password must be at least 6 characters long.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving Password...';
+            hideAuthMsg();
+
+            try {
+                const res = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        resetToken: currentResetToken,
+                        newPassword,
+                        confirmPassword
+                    })
+                });
+
+                const data = await res.json();
+                btn.disabled = false;
+                btn.innerHTML = 'Save New Password <i class="fa-solid fa-lock"></i>';
+
+                if (!res.ok || !data.success) {
+                    showAuthMsg(data.message || 'Failed to reset password.', 'error');
+                    return;
+                }
+
+                currentResetToken = null;
+                goToForgotStep(4);
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = 'Save New Password <i class="fa-solid fa-lock"></i>';
+                showAuthMsg('Cannot connect to server.', 'error');
+            }
+        }
+
+        function finishPasswordReset() {
+            const updatedEmail = document.getElementById('forgotEmail').value.trim();
+            switchAuthTab('login');
+            if (updatedEmail) {
+                document.getElementById('loginEmail').value = updatedEmail;
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
+            }
+            showAuthMsg('Password reset successfully. Please sign in with your new password.', 'success');
         }
 
         function showAuthMsg(msg, type) {

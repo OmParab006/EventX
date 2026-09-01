@@ -7,6 +7,7 @@ const cors = require("cors");
 dotenv.config();
 
 const db = require("./db");
+const initDatabase = require("./initDb");
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -68,12 +69,20 @@ app.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
 });
 
-app.get("/admin", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/admin-dashboard.html"));
+app.get("/teacher-dashboard", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/teacher-dashboard.html"));
 });
 
 app.get("/teacher-dashboard.html", (req, res) => {
-    res.redirect("/admin-dashboard.html");
+    res.sendFile(path.join(__dirname, "../frontend/teacher-dashboard.html"));
+});
+
+app.get("/admin", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/teacher-dashboard.html"));
+});
+
+app.get("/admin-dashboard.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/teacher-dashboard.html"));
 });
 
 // ==========================================
@@ -92,8 +101,11 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ==========================================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`==========================================`);
     console.log(`  EventX Server running on http://localhost:${PORT}`);
     console.log(`==========================================`);
+    
+    // Auto-verify DB initialization on startup
+    await initDatabase();
 });
