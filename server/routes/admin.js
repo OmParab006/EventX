@@ -71,6 +71,127 @@ router.get("/stats", async (req, res) => {
 });
 
 // ==================================================
+// ==================================================
+// STUDENTS MANAGEMENT (Faculty / Organizer Protected)
+// ==================================================
+router.get("/students", async (req, res) => {
+    try {
+        const { search } = req.query;
+
+        let query = `
+            SELECT 
+                u.id,
+                u.name,
+                u.email,
+                u.role,
+                u.created_at,
+                u.last_login,
+                COUNT(DISTINCT CASE WHEN r.registration_status != 'CANCELLED' THEN r.id END) AS registrations_count,
+                COALESCE(SUM(CASE WHEN p.payment_status = 'PAID' THEN p.amount ELSE 0 END), 0) AS total_paid
+            FROM users u
+            LEFT JOIN registrations r ON u.id = r.student_id
+            LEFT JOIN payments p ON r.id = p.registration_id
+            WHERE u.role = 'student'
+        `;
+
+        const params = [];
+
+        if (search && search.trim()) {
+            const s = `%${search.trim()}%`;
+            query += ` AND (u.id LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`;
+            params.push(s, s, s);
+        }
+
+        query += `
+            GROUP BY u.id
+            ORDER BY u.id DESC
+        `;
+
+        const [students] = await db.execute(query, params);
+
+        res.json({
+            success: true,
+            total: students.length,
+            students: students.map(st => ({
+                ...st,
+                registrations_count: Number(st.registrations_count || 0),
+                total_paid: Number(st.total_paid || 0)
+            }))
+        });
+    } catch (error) {
+        console.error("ADMIN STUDENTS ERROR:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch student list.",
+            error: error.message
+        });
+    }
+});
+
+// Delete student account (Faculty protected, strictly blocks deleting faculty/admin)
+router.delete("/students/:id", async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+
+        // Prevent self-deletion
+        if (Number(targetUserId) === Number(req.user.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "You cannot delete your own account through student management."
+            });
+        }
+
+        // Validate target user exists and is strictly a student
+        const [targetUsers] = await db.execute(
+            "SELECT id, name, email, role FROM users WHERE id = ?",
+            [targetUserId]
+        );
+
+        if (targetUsers.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Student not found."
+            });
+        }
+
+        const targetUser = targetUsers[0];
+
+        // Security check: strictly block deleting teacher/admin accounts
+        if (targetUser.role !== "student") {
+            return res.status(403).json({
+                success: false,
+                message: "Security restriction: Only student accounts can be deleted through this endpoint."
+            });
+        }
+
+        // Delete the student record (foreign keys cascade to registrations, payments, tokens)
+        const [result] = await db.execute(
+            "DELETE FROM users WHERE id = ? AND role = 'student'",
+            [targetUserId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Student not found or already deleted."
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Student '${targetUser.name}' (ID: ${targetUser.id}) has been deleted successfully.`
+        });
+    } catch (error) {
+        console.error("ADMIN DELETE STUDENT ERROR:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete student account.",
+            error: error.message
+        });
+    }
+});
+
+// ==================================================
 // USERS MANAGEMENT
 // ==================================================
 router.get("/users", async (req, res) => {
@@ -82,6 +203,7 @@ router.get("/users", async (req, res) => {
                 u.email,
                 u.role,
                 u.created_at,
+                u.last_login,
                 COUNT(DISTINCT r.id) AS registrations_count,
                 COUNT(DISTINCT e.id) AS events_created
              FROM users u

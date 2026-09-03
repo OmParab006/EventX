@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config(); // fallback
 const db = require('./db');
 
 const BASE_URL = 'http://localhost:5000';
@@ -222,6 +224,94 @@ async function runTests() {
         const resetBackHash = await bcrypt.hash('student123', 10);
         await db.query("UPDATE users SET password = ? WHERE email = 'student@test.com'", [resetBackHash]);
         console.log('  (Reset demo student password back to student123 for evaluation)');
+
+        // 11. LAST LOGIN TIMESTAMP
+        console.log('\n--- Testing Last Login Timestamp ---');
+
+        // Fetch the last_login value right after the student logged in earlier
+        const [loginTimestampRows] = await db.query(
+            "SELECT last_login FROM users WHERE email = 'student@test.com'"
+        );
+        assert(
+            loginTimestampRows.length > 0 && loginTimestampRows[0].last_login !== null,
+            'last_login timestamp is populated after student login'
+        );
+
+        // Verify it's recent using DB-side time comparison (avoids TZ mismatch between DB UTC and OS local)
+        if (loginTimestampRows.length > 0 && loginTimestampRows[0].last_login) {
+            const [recentCheck] = await db.query(
+                "SELECT TIMESTAMPDIFF(MINUTE, last_login, NOW()) AS mins_ago FROM users WHERE email = 'student@test.com'"
+            );
+            const minsAgo = Number(recentCheck[0].mins_ago);
+            assert(minsAgo <= 10, 'last_login timestamp is within the last 10 minutes (DB-side check)');
+        }
+
+        // 12. STUDENT MANAGEMENT ENDPOINTS
+        console.log('\n--- Testing Student Management API ---');
+
+        // GET /api/admin/students — returns student list
+        const studentsRes = await fetch(`${BASE_URL}/api/admin/students`, {
+            headers: { 'Authorization': `Bearer ${teacherToken}` }
+        });
+        const studentsData = await studentsRes.json();
+        assert(
+            studentsData.success === true && Array.isArray(studentsData.students),
+            'GET /api/admin/students returns a students array'
+        );
+        assert(
+            studentsData.students.every(s => s.role === 'student' || s.role === undefined),
+            'All returned users are students (no teachers/admins in results)'
+        );
+
+        // GET /api/admin/students?search=student@test.com — search filter works
+        const searchRes = await fetch(
+            `${BASE_URL}/api/admin/students?search=${encodeURIComponent('student@test.com')}`,
+            { headers: { 'Authorization': `Bearer ${teacherToken}` } }
+        );
+        const searchData = await searchRes.json();
+        assert(
+            searchData.success === true && searchData.students.some(s => s.email === 'student@test.com'),
+            'Student search by email returns matching student'
+        );
+
+        // Verify student record fields include last_login and registration counts
+        const testStudent = studentsData.students.find(s => s.email === 'student@test.com');
+        assert(
+            testStudent !== undefined && 'last_login' in testStudent && 'registrations_count' in testStudent,
+            'Student record includes last_login and registrations_count fields'
+        );
+
+        // 13. STUDENT DELETION SECURITY
+        console.log('\n--- Testing Student Deletion Security ---');
+
+        // Attempting to delete teacher/faculty via student endpoint must be blocked
+        // Note: teacher@test.com IS the logged-in user, so self-deletion check fires first (400)
+        // For any teacher account (self or other), the endpoint should return a non-200 error
+        const [teacherRowForDelete] = await db.query("SELECT id FROM users WHERE email = 'teacher@test.com'");
+        if (teacherRowForDelete.length > 0) {
+            const teacherId = teacherRowForDelete[0].id;
+            const deleteFacultyRes = await fetch(`${BASE_URL}/api/admin/students/${teacherId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${teacherToken}` }
+            });
+            const deleteFacultyData = await deleteFacultyRes.json();
+            // Expect 400 (self-deletion blocked) or 403 (non-student role blocked)
+            const isBlocked = (deleteFacultyRes.status === 400 || deleteFacultyRes.status === 403) && deleteFacultyData.success === false;
+            assert(isBlocked, 'Deleting a teacher account via /api/admin/students/:id is blocked (400 self-delete or 403 non-student)');
+        } else {
+            console.log('  (Skipped: teacher@test.com not found for security deletion test)');
+        }
+
+        // Attempting to delete nonexistent student returns 404
+        const deleteNoneRes = await fetch(`${BASE_URL}/api/admin/students/9999999`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${teacherToken}` }
+        });
+        const deleteNoneData = await deleteNoneRes.json();
+        assert(
+            deleteNoneRes.status === 404 && deleteNoneData.success === false,
+            'Deleting non-existent student returns 404 Not Found'
+        );
 
     } catch (err) {
         console.error('Test Execution Error:', err);

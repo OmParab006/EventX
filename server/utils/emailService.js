@@ -1,18 +1,45 @@
 const nodemailer = require("nodemailer");
 
 /**
+ * Mask email address for safe diagnostic logging (e.g. s***t@gmail.com)
+ */
+function maskEmail(email) {
+    if (!email || typeof email !== "string" || !email.includes("@")) return "***@***";
+    const [local, domain] = email.split("@");
+    const maskedLocal = local.length > 2 ? `${local[0]}***${local[local.length - 1]}` : "***";
+    const domainParts = domain.split(".");
+    const maskedDomain = domainParts.map((part, idx) => (idx === 0 && part.length > 2 ? `${part[0]}***` : part)).join(".");
+    return `${maskedLocal}@${maskedDomain}`;
+}
+
+/**
  * Configure and return the SMTP Transporter
  */
 function createTransporter() {
-    const host = process.env.EMAIL_HOST;
+    const host = process.env.EMAIL_HOST ? process.env.EMAIL_HOST.trim() : null;
     const port = Number(process.env.EMAIL_PORT) || 587;
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASSWORD;
+    const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
+    // Strip accidental whitespace commonly copied from Google App Passwords
+    const pass = process.env.EMAIL_PASSWORD ? process.env.EMAIL_PASSWORD.trim().replace(/\s+/g, "") : null;
+    const isGmail = host === "smtp.gmail.com" || (process.env.EMAIL_SERVICE && process.env.EMAIL_SERVICE.toLowerCase() === "gmail");
     const secure = process.env.EMAIL_SECURE === "true" || port === 465;
 
     // Check if valid SMTP credentials exist
-    if (!host || !user || !pass) {
+    if ((!host && !isGmail) || !user || !pass) {
         return null;
+    }
+
+    if (isGmail) {
+        return nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user,
+                pass
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
     }
 
     return nodemailer.createTransport({
@@ -37,7 +64,8 @@ function createTransporter() {
  */
 async function sendPasswordResetEmail(toEmail, otpCode, recipientName = "EventX User") {
     const transporter = createTransporter();
-    const fromAddress = process.env.EMAIL_FROM || process.env.EMAIL_USER || '"EventX Support" <no-reply@eventx.com>';
+    const fromAddress = process.env.EMAIL_FROM || (process.env.EMAIL_USER ? `"EventX Support" <${process.env.EMAIL_USER}>` : '"EventX Support" <no-reply@eventx.com>');
+    const maskedRecipient = maskEmail(toEmail);
 
     const htmlContent = `
     <!DOCTYPE html>
@@ -172,7 +200,7 @@ async function sendPasswordResetEmail(toEmail, otpCode, recipientName = "EventX 
 
     if (!transporter) {
         // Fallback for development if SMTP is not configured
-        console.warn("[EmailService] SMTP credentials not fully configured in environment variables. Set EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD in .env.");
+        console.warn(`[EmailService] SMTP credentials not configured. Skipping email dispatch to ${maskedRecipient}. Configure EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD in .env.`);
         return {
             delivered: false,
             message: "SMTP credentials not configured"
@@ -180,6 +208,7 @@ async function sendPasswordResetEmail(toEmail, otpCode, recipientName = "EventX 
     }
 
     try {
+        console.log(`[EmailService] Attempting to deliver OTP email to ${maskedRecipient}...`);
         const info = await transporter.sendMail({
             from: fromAddress,
             to: toEmail,
@@ -188,12 +217,13 @@ async function sendPasswordResetEmail(toEmail, otpCode, recipientName = "EventX 
             html: htmlContent
         });
 
+        console.log(`[EmailService] ✓ OTP email delivered successfully to ${maskedRecipient}. MessageId: ${info.messageId}`);
         return {
             delivered: true,
             messageId: info.messageId
         };
     } catch (error) {
-        console.error("[EmailService] Failed to send password reset email:", error.message);
+        console.error(`[EmailService] ✗ Failed to deliver password reset email to ${maskedRecipient}. Reason:`, error.message);
         return {
             delivered: false,
             error: error.message

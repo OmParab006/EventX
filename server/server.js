@@ -3,8 +3,9 @@ const dotenv = require("dotenv");
 const path = require("path");
 const cors = require("cors");
 
-// Load Environment Variables
-dotenv.config();
+// Load Environment Variables — check project root first, then CWD
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config(); // fallback for when running from project root
 
 const db = require("./db");
 const initDatabase = require("./initDb");

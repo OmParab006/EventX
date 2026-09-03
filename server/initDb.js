@@ -23,6 +23,20 @@ async function initDatabase() {
 
         await db.query(createTableSql);
         console.log("✓ Database initialized: password_reset_tokens table is ready.");
+
+        // Check if last_login column exists on users table
+        const [columns] = await db.query(
+            `SELECT COLUMN_NAME 
+             FROM INFORMATION_SCHEMA.COLUMNS 
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'last_login'`
+        );
+
+        if (columns.length === 0) {
+            await db.query("ALTER TABLE users ADD COLUMN last_login DATETIME NULL DEFAULT NULL AFTER created_at");
+            console.log("✓ Database migrated: Added 'last_login' column to users table.");
+        } else {
+            console.log("✓ Database check: 'last_login' column already exists in users table.");
+        }
     } catch (error) {
         console.error("Database initialization warning:", error.message);
     }

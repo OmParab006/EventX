@@ -957,6 +957,11 @@
                             <i class="fa-solid fa-receipt"></i> Payment Records
                         </button>
                     </li>
+                    <li class="nav-item" id="nav-students">
+                        <button type="button" onclick="switchTab('students')">
+                            <i class="fa-solid fa-user-graduate"></i> Manage Students
+                        </button>
+                    </li>
 
                     <li class="nav-category">System</li>
                     <li class="nav-item" id="nav-settings">
@@ -1236,7 +1241,54 @@
                 </div>
 
                 <!-- ==============================================
-                     TAB 5: SETTINGS & ACCOUNT
+                     TAB 5: STUDENT MANAGEMENT
+                ============================================== -->
+                <div class="dashboard-tab-content" id="tab-students">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-user-graduate" style="color: #fbbf24;"></i> Registered Students</h3>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <span id="studentCountBadge" style="font-size: 13px; color: var(--text-muted);">Loading...</span>
+                                <button type="button" class="btn btn-secondary" onclick="loadStudents()">
+                                    <i class="fa-solid fa-rotate"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="toolbar">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="studentSearchInput" placeholder="Search by name, email or ID..." oninput="filterStudentsTable()">
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="exportStudentsCSV()">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#ID</th>
+                                        <th>Full Name</th>
+                                        <th>Email Address</th>
+                                        <th>Registrations</th>
+                                        <th>Amount Paid</th>
+                                        <th>Last Login</th>
+                                        <th>Joined On</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody">
+                                    <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading students...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================================
+                     TAB 6: SETTINGS & ACCOUNT
                 ============================================== -->
                 <div class="dashboard-tab-content" id="tab-settings">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
@@ -1416,6 +1468,7 @@
         let allEvents = [];
         let allRegistrations = [];
         let allPayments = [];
+        let allStudents = [];
         let currentEventObj = null;
         let currentAttendees = [];
 
@@ -1425,6 +1478,7 @@
             loadEvents();
             loadRegistrations();
             loadPayments();
+            loadStudents();
         });
 
         // ==============================================
@@ -1493,6 +1547,7 @@
                 'events': { title: 'Manage Events', subtitle: 'Create, update, and manage campus event schedules and seat caps.' },
                 'registrations': { title: 'All Registrations', subtitle: 'View full student booking logs and verify confirmed attendees.' },
                 'payments': { title: 'Payment Records', subtitle: 'Track student payment transactions and gateway order IDs.' },
+                'students': { title: 'Student Management', subtitle: 'View, search, and manage all registered student accounts.' },
                 'settings': { title: 'Account Settings', subtitle: 'Manage your faculty profile and credentials.' }
             };
 
@@ -2001,6 +2056,113 @@
             });
 
             downloadCSV(csv, "Payment_Transactions_Log.csv");
+        }
+
+        // ==============================================
+        // STUDENT MANAGEMENT TAB
+        // ==============================================
+        async function loadStudents() {
+            try {
+                const res = await fetch('/api/admin/students', { headers: getAuthHeaders() });
+                const data = await res.json();
+                if (data.success) {
+                    allStudents = data.students || [];
+                    renderStudentsTable(allStudents);
+                    const badge = document.getElementById('studentCountBadge');
+                    if (badge) badge.textContent = `${allStudents.length} student${allStudents.length !== 1 ? 's' : ''} found`;
+                }
+            } catch (err) {
+                console.error('Load students error:', err);
+            }
+        }
+
+        function renderStudentsTable(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            if (!students || students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">No registered students found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(st => {
+                const lastLogin = st.last_login
+                    ? new Date(st.last_login).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+                    : '<span style="color: var(--text-muted);">Never</span>';
+                const joinDate = new Date(st.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' });
+                const amountPaid = Number(st.total_paid || 0);
+
+                return `
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 12px;">#${st.id}</td>
+                        <td><strong>${escapeHTML(st.name)}</strong></td>
+                        <td style="color: #93c5fd;">${escapeHTML(st.email)}</td>
+                        <td>
+                            <span class="badge badge-purple">
+                                <i class="fa-solid fa-ticket"></i> ${st.registrations_count}
+                            </span>
+                        </td>
+                        <td><strong style="color: #34d399;">${amountPaid > 0 ? '\u20B9' + amountPaid.toLocaleString() : '<span style="color: var(--text-muted);">Free</span>'}</strong></td>
+                        <td style="font-size: 12px;">${lastLogin}</td>
+                        <td style="font-size: 12px; color: var(--text-muted);">${joinDate}</td>
+                        <td style="text-align: right;">
+                            <button type="button" class="action-btn-sm btn-del" onclick="deleteStudent(${st.id}, '${escapeHTML(st.name)}', '${escapeHTML(st.email)}')">
+                                <i class="fa-solid fa-trash-can"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterStudentsTable() {
+            const query = document.getElementById('studentSearchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderStudentsTable(allStudents);
+                return;
+            }
+
+            const filtered = allStudents.filter(st =>
+                (st.name && st.name.toLowerCase().includes(query)) ||
+                (st.email && st.email.toLowerCase().includes(query)) ||
+                String(st.id).includes(query)
+            );
+            renderStudentsTable(filtered);
+        }
+
+        async function deleteStudent(studentId, name, email) {
+            if (!confirm(`Delete student "${name}" (${email})?\n\nThis will permanently remove their account and all associated registrations and payment records. This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/students/${studentId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Student "${name}" deleted successfully.`, 'success');
+                    await loadStudents();
+                    await loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Failed to delete student.', 'error');
+                }
+            } catch (err) {
+                showToast('Server communication error.', 'error');
+            }
+        }
+
+        function exportStudentsCSV() {
+            if (!allStudents || allStudents.length === 0) {
+                showToast('No student data to export.', 'error');
+                return;
+            }
+
+            let csv = "ID,Full Name,Email,Registrations,Total Paid (INR),Last Login,Joined On\n";
+            allStudents.forEach(st => {
+                const lastLogin = st.last_login ? new Date(st.last_login).toLocaleString() : 'Never';
+                csv += `"${st.id}","${st.name}","${st.email}","${st.registrations_count}","${st.total_paid}","${lastLogin}","${new Date(st.created_at).toLocaleString()}"\n`;
+            });
+
+            downloadCSV(csv, 'Students_Directory.csv');
         }
 
         // ==============================================

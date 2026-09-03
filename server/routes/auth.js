@@ -212,6 +212,12 @@ router.post("/login", async (req, res) => {
                 ? "teacher"
                 : user.role;
 
+        // Update last_login timestamp safely
+        await db.execute(
+            "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
+            [user.id]
+        ).catch(err => console.warn("Failed to update last_login:", err.message));
+
         const token = jwt.sign(
             {
                 id: user.id,
