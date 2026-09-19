@@ -5,59 +5,8 @@ const crypto = require("crypto");
 
 const db = require("../db");
 const { verifyToken, requireRole } = require("../middleware/authMiddleware");
-const { sendPasswordResetEmail } = require("../utils/emailService");
 
 const router = express.Router();
-
-// In-memory rate limiting map for forgot-password requests
-// Format: { [email]: { lastRequestedAt: timestamp, requestCount: number, windowStart: timestamp } }
-const resetRateLimits = new Map();
-
-function checkResetRateLimit(email) {
-    const now = Date.now();
-    const cleanEmail = email.toLowerCase().trim();
-    const entry = resetRateLimits.get(cleanEmail);
-
-    if (!entry) {
-        resetRateLimits.set(cleanEmail, {
-            lastRequestedAt: now,
-            requestCount: 1,
-            windowStart: now
-        });
-        return { allowed: true };
-    }
-
-    // Reset window after 15 minutes
-    if (now - entry.windowStart > 15 * 60 * 1000) {
-        resetRateLimits.set(cleanEmail, {
-            lastRequestedAt: now,
-            requestCount: 1,
-            windowStart: now
-        });
-        return { allowed: true };
-    }
-
-    // Minimum interval between requests: 30 seconds
-    if (now - entry.lastRequestedAt < 30 * 1000) {
-        const waitSeconds = Math.ceil((30 * 1000 - (now - entry.lastRequestedAt)) / 1000);
-        return {
-            allowed: false,
-            message: `Please wait ${waitSeconds} seconds before requesting another code.`
-        };
-    }
-
-    // Maximum 5 requests per 15 minutes
-    if (entry.requestCount >= 5) {
-        return {
-            allowed: false,
-            message: "Too many password reset requests. Please try again in 15 minutes."
-        };
-    }
-
-    entry.requestCount += 1;
-    entry.lastRequestedAt = now;
-    return { allowed: true };
-}
 
 // ==========================================
 // TEST ROUTE
@@ -252,199 +201,32 @@ router.post("/login", async (req, res) => {
 });
 
 // ==========================================
-// FORGOT PASSWORD: STEP 1 (REQUEST OTP)
+// RESET PASSWORD (SIMPLIFIED DIRECT FLOW)
 // ==========================================
-router.post("/forgot-password", async (req, res) => {
+router.post("/reset-password", async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, newPassword, confirmPassword } = req.body;
 
-        if (!email || typeof email !== "string" || !email.includes("@")) {
+        if (!email || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Email, new password, and confirm password are required."
+            });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+
+        if (!cleanEmail.includes("@")) {
             return res.status(400).json({
                 success: false,
                 message: "Please enter a valid email address."
             });
         }
 
-        const cleanEmail = email.trim().toLowerCase();
-
-        // Check rate limiting
-        const rateCheck = checkResetRateLimit(cleanEmail);
-        if (!rateCheck.allowed) {
-            return res.status(429).json({
-                success: false,
-                message: rateCheck.message
-            });
-        }
-
-        // Generic security response message
-        const genericSuccessMessage = "If an account exists with this email, a verification code has been sent.";
-
-        // Find user by email
-        const [users] = await db.execute(
-            "SELECT id, name, email FROM users WHERE email = ?",
-            [cleanEmail]
-        );
-
-        if (users.length === 0) {
-            // Return generic response without revealing user existence
-            return res.json({
-                success: true,
-                message: genericSuccessMessage
-            });
-        }
-
-        const user = users[0];
-
-        // Invalidate any previous unused tokens for this user
-        await db.execute(
-            "UPDATE password_reset_tokens SET is_used = 1 WHERE user_id = ? AND is_used = 0",
-            [user.id]
-        );
-
-        // Generate cryptographically secure 6-digit random OTP
-        const otpCode = crypto.randomInt(100000, 999999).toString();
-
-        // Hash OTP with SHA-256
-        const otpHash = crypto.createHash("sha256").update(otpCode).digest("hex");
-
-        // Expiration: 10 minutes from now
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-        // Save token in database
-        await db.execute(
-            `INSERT INTO password_reset_tokens
-             (user_id, email, otp_hash, attempts, is_used, expires_at)
-             VALUES (?, ?, ?, 0, 0, ?)`,
-            [user.id, cleanEmail, otpHash, expiresAt]
-        );
-
-        // Send email with OTP
-        await sendPasswordResetEmail(cleanEmail, otpCode, user.name);
-
-        return res.json({
-            success: true,
-            message: genericSuccessMessage
-        });
-    } catch (error) {
-        console.error("Forgot password error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Unable to process password reset request at this time."
-        });
-    }
-});
-
-// ==========================================
-// FORGOT PASSWORD: STEP 2 (VERIFY OTP)
-// ==========================================
-router.post("/verify-reset-otp", async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-
-        if (!email || !otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and verification code are required."
-            });
-        }
-
-        const cleanEmail = email.trim().toLowerCase();
-        const cleanOtp = otp.toString().trim();
-
-        if (cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please enter a valid 6-digit verification code."
-            });
-        }
-
-        // Find active, unexpired token record
-        const [tokens] = await db.execute(
-            `SELECT * FROM password_reset_tokens
-             WHERE email = ? AND is_used = 0 AND expires_at > NOW()
-             ORDER BY id DESC
-             LIMIT 1`,
-            [cleanEmail]
-        );
-
-        if (tokens.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Verification code has expired or is invalid. Please request a new one."
-            });
-        }
-
-        const tokenRecord = tokens[0];
-
-        // Check max attempts
-        if (tokenRecord.attempts >= 5) {
-            await db.execute(
-                "UPDATE password_reset_tokens SET is_used = 1 WHERE id = ?",
-                [tokenRecord.id]
-            );
-            return res.status(429).json({
-                success: false,
-                message: "Too many failed attempts. Please request a new verification code."
-            });
-        }
-
-        // Check OTP hash
-        const computedOtpHash = crypto.createHash("sha256").update(cleanOtp).digest("hex");
-
-        if (computedOtpHash !== tokenRecord.otp_hash) {
-            await db.execute(
-                "UPDATE password_reset_tokens SET attempts = attempts + 1 WHERE id = ?",
-                [tokenRecord.id]
-            );
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect verification code. Please try again."
-            });
-        }
-
-        // OTP is correct -> Generate secure temporary reset token
-        const resetToken = crypto.randomBytes(32).toString("hex");
-        const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
-
-        await db.execute(
-            "UPDATE password_reset_tokens SET reset_token_hash = ?, attempts = 0 WHERE id = ?",
-            [resetTokenHash, tokenRecord.id]
-        );
-
-        res.json({
-            success: true,
-            message: "Verification code confirmed.",
-            resetToken
-        });
-    } catch (error) {
-        console.error("Verify OTP error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Unable to verify code at this time."
-        });
-    }
-});
-
-// ==========================================
-// FORGOT PASSWORD: STEP 3 (RESET PASSWORD)
-// ==========================================
-router.post("/reset-password", async (req, res) => {
-    try {
-        const { email, resetToken, newPassword, confirmPassword } = req.body;
-
-        if (!email || !resetToken || !newPassword || !confirmPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required."
-            });
-        }
-
-        const cleanEmail = email.trim().toLowerCase();
-
         if (newPassword !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Passwords do not match."
+                message: "New password and confirm password must match."
             });
         }
 
@@ -455,50 +237,120 @@ router.post("/reset-password", async (req, res) => {
             });
         }
 
-        // Hash the provided resetToken to check against DB
-        const resetTokenHash = crypto.createHash("sha256").update(resetToken.trim()).digest("hex");
-
-        const [tokens] = await db.execute(
-            `SELECT * FROM password_reset_tokens
-             WHERE email = ? AND reset_token_hash = ? AND is_used = 0 AND expires_at > NOW()
-             ORDER BY id DESC
-             LIMIT 1`,
-            [cleanEmail, resetTokenHash]
+        // Check whether the email exists in the users table
+        const [users] = await db.execute(
+            "SELECT id, name, email FROM users WHERE email = ?",
+            [cleanEmail]
         );
 
-        if (tokens.length === 0) {
-            return res.status(400).json({
+        if (users.length === 0) {
+            return res.status(404).json({
                 success: false,
-                message: "Reset session has expired or is invalid. Please restart the forgot password process."
+                message: "No account found with this email address."
             });
         }
 
-        const tokenRecord = tokens[0];
+        const user = users[0];
 
-        // Hash the new password with bcrypt
+        // Hash the new password using bcrypt
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update password in users table
+        // Update the user's password in the existing users table
         await db.execute(
             "UPDATE users SET password = ? WHERE id = ?",
-            [hashedPassword, tokenRecord.user_id]
+            [hashedPassword, user.id]
         );
 
-        // Invalidate token record so it cannot be reused
-        await db.execute(
-            "UPDATE password_reset_tokens SET is_used = 1 WHERE id = ?",
-            [tokenRecord.id]
-        );
-
-        res.json({
+        return res.json({
             success: true,
-            message: "Password reset successfully. Please sign in with your new password."
+            message: "Password updated successfully! Please sign in with your new password."
         });
     } catch (error) {
-        console.error("Reset password error:", error);
-        res.status(500).json({
+        console.error("Reset password error:", error.message);
+        return res.status(500).json({
             success: false,
-            message: "Unable to reset password. Please try again."
+            message: "Unable to reset password at this time. Please try again."
+        });
+    }
+});
+
+// Backward compatibility alias for POST /forgot-password
+router.post("/forgot-password", async (req, res) => {
+    try {
+        const { email, newPassword, confirmPassword } = req.body;
+
+        // If client sends new password fields, route to reset-password
+        if (newPassword || confirmPassword) {
+            if (!email || !newPassword || !confirmPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email, new password, and confirm password are required."
+                });
+            }
+
+            const cleanEmail = email.trim().toLowerCase();
+
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "New password and confirm password must match."
+                });
+            }
+
+            if (newPassword.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Password must be at least 6 characters long."
+                });
+            }
+
+            const [users] = await db.execute(
+                "SELECT id FROM users WHERE email = ?",
+                [cleanEmail]
+            );
+
+            if (users.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No account found with this email address."
+                });
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            await db.execute("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, users[0].id]);
+
+            return res.json({
+                success: true,
+                message: "Password updated successfully! Please sign in with your new password."
+            });
+        }
+
+        // Otherwise validate email exists
+        if (!email || !email.includes("@")) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address."
+            });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+        const [users] = await db.execute("SELECT id FROM users WHERE email = ?", [cleanEmail]);
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with this email address."
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "Account verified. Please set your new password."
+        });
+    } catch (error) {
+        console.error("Forgot password alias error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to process request at this time."
         });
     }
 });

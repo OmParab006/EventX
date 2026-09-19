@@ -85,71 +85,37 @@ async function runTests() {
         const adminPaymentsData = await adminPaymentsRes.json();
         assert(adminPaymentsData.success === true && Array.isArray(adminPaymentsData.payments), 'Teacher /api/admin/payments returns payments');
 
-        // 6. FORGOT PASSWORD FLOW
+        // 6. FORGOT PASSWORD FLOW (SIMPLIFIED DIRECT FLOW)
         console.log('\n--- Testing Forgot Password & Password Reset ---');
         
-        // Step 1: Request OTP for non-existing email -> Should return generic success
-        const nonExistRes = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'nonexistentuser999@test.com' })
-        });
-        const nonExistData = await nonExistRes.json();
-        assert(nonExistData.success === true && nonExistData.message.includes('verification code has been sent'), 'Non-existent email returns generic security message without error');
-
-        // Step 2: Request OTP for student@test.com
-        // Clear rate limit for clean test run
-        const resetReqRes = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+        // Step 1: Missing fields -> Should reject with 400
+        const missingFieldsRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'student@test.com' })
         });
-        const resetReqData = await resetReqRes.json();
-        assert(resetReqData.success === true, 'Forgot password request for valid student succeeds');
+        const missingFieldsData = await missingFieldsRes.json();
+        assert(missingFieldsRes.status === 400 && missingFieldsData.success === false, 'Missing password fields rejected');
 
-        // Check DB for created OTP record
-        const [tokens] = await db.query(
-            "SELECT * FROM password_reset_tokens WHERE email = 'student@test.com' AND is_used = 0 ORDER BY id DESC LIMIT 1"
-        );
-        assert(tokens.length === 1 && tokens[0].otp_hash.length === 64, 'OTP record saved with SHA-256 hash in database');
-
-        const latestTokenRecord = tokens[0];
-
-        // Step 3: Verify OTP with incorrect code -> Should fail
-        const wrongOtpRes = await fetch(`${BASE_URL}/api/auth/verify-reset-otp`, {
+        // Step 2: Request reset for non-existing email -> Should return 404
+        const nonExistRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'student@test.com', otp: '000000' })
+            body: JSON.stringify({
+                email: 'nonexistentuser999@test.com',
+                newPassword: 'Password123!',
+                confirmPassword: 'Password123!'
+            })
         });
-        const wrongOtpData = await wrongOtpRes.json();
-        assert(wrongOtpRes.status === 400 && wrongOtpData.success === false, 'Incorrect OTP code is rejected');
+        const nonExistData = await nonExistRes.json();
+        assert(nonExistRes.status === 404 && nonExistData.success === false, 'Non-existent email returns 404 not found');
 
-        // To verify correct OTP: let's generate a known OTP for testing
-        const testOtp = '654321';
-        const testOtpHash = crypto.createHash('sha256').update(testOtp).digest('hex');
-        await db.query(
-            "UPDATE password_reset_tokens SET otp_hash = ?, attempts = 0 WHERE id = ?",
-            [testOtpHash, latestTokenRecord.id]
-        );
-
-        // Step 4: Verify OTP with correct code -> Should return resetToken
-        const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-reset-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'student@test.com', otp: testOtp })
-        });
-        const verifyData = await verifyRes.json();
-        assert(verifyData.success === true && typeof verifyData.resetToken === 'string' && verifyData.resetToken.length > 20, 'Correct OTP is verified and returns secure resetToken');
-
-        const clientResetToken = verifyData.resetToken;
-
-        // Step 5: Reset password with mismatched passwords -> Should fail
+        // Step 3: Mismatched passwords -> Should reject with 400
         const mismatchRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'student@test.com',
-                resetToken: clientResetToken,
                 newPassword: 'newPassword123',
                 confirmPassword: 'differentPassword123'
             })
@@ -157,13 +123,12 @@ async function runTests() {
         const mismatchData = await mismatchRes.json();
         assert(mismatchRes.status === 400 && mismatchData.success === false, 'Mismatched passwords rejected');
 
-        // Step 6: Reset password with short password -> Should fail
+        // Step 4: Short password (<6 chars) -> Should reject with 400
         const shortRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'student@test.com',
-                resetToken: clientResetToken,
                 newPassword: '123',
                 confirmPassword: '123'
             })
@@ -171,39 +136,25 @@ async function runTests() {
         const shortData = await shortRes.json();
         assert(shortRes.status === 400 && shortData.success === false, 'Short password (<6 chars) rejected');
 
-        // Step 7: Reset password with valid new password
-        const newTestPass = 'myBrandNewPass2026!';
-        const validResetRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+        // Step 5: Valid password reset for student
+        const newStudentPass = 'studentNew2026!';
+        const validStudentResetRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'student@test.com',
-                resetToken: clientResetToken,
-                newPassword: newTestPass,
-                confirmPassword: newTestPass
+                newPassword: newStudentPass,
+                confirmPassword: newStudentPass
             })
         });
-        const validResetData = await validResetRes.json();
-        assert(validResetData.success === true && validResetData.message.includes('Password reset successfully'), 'Password reset succeeds');
+        const validStudentResetData = await validStudentResetRes.json();
+        assert(validStudentResetRes.status === 200 && validStudentResetData.success === true, 'Student password reset succeeds');
 
-        // Step 8: Token is marked as used and cannot be reused
-        const [usedTokenCheck] = await db.query("SELECT is_used FROM password_reset_tokens WHERE id = ?", [latestTokenRecord.id]);
-        assert(usedTokenCheck[0].is_used === 1, 'Password reset token is marked as is_used = 1 in database');
+        // Step 6: Verify password in database is stored as bcrypt hash
+        const [studentRows] = await db.query("SELECT password FROM users WHERE email = 'student@test.com'");
+        assert(studentRows.length === 1 && (studentRows[0].password.startsWith('$2a$') || studentRows[0].password.startsWith('$2b$')), 'Password stored as bcrypt hash in users table');
 
-        const reuseRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: 'student@test.com',
-                resetToken: clientResetToken,
-                newPassword: 'anotherPass123',
-                confirmPassword: 'anotherPass123'
-            })
-        });
-        const reuseData = await reuseRes.json();
-        assert(reuseRes.status === 400 && reuseData.success === false, 'Reusing used resetToken is rejected');
-
-        // Step 9: Verify old password no longer works
+        // Step 7: Verify old password no longer works
         const oldLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -211,19 +162,44 @@ async function runTests() {
         });
         assert(oldLoginRes.status === 401, 'Old password no longer works after reset');
 
-        // Step 10: Verify new password works
+        // Step 8: Verify new password works immediately
         const newLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'student@test.com', password: newTestPass })
+            body: JSON.stringify({ email: 'student@test.com', password: newStudentPass })
         });
         const newLoginData = await newLoginRes.json();
-        assert(newLoginData.success === true && !!newLoginData.token, 'Login with new password succeeds');
+        assert(newLoginData.success === true && !!newLoginData.token, 'Login with new password succeeds immediately');
 
-        // Reset student password back to student123 for demo consistency
-        const resetBackHash = await bcrypt.hash('student123', 10);
-        await db.query("UPDATE users SET password = ? WHERE email = 'student@test.com'", [resetBackHash]);
-        console.log('  (Reset demo student password back to student123 for evaluation)');
+        // Step 9: Valid password reset for teacher
+        const newTeacherPass = 'teacherNew2026!';
+        const validTeacherResetRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: 'teacher@test.com',
+                newPassword: newTeacherPass,
+                confirmPassword: newTeacherPass
+            })
+        });
+        const validTeacherResetData = await validTeacherResetRes.json();
+        assert(validTeacherResetRes.status === 200 && validTeacherResetData.success === true, 'Teacher password reset succeeds');
+
+        // Step 10: Verify teacher login with new password and access teacher route
+        const teacherNewLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'teacher@test.com', password: newTeacherPass })
+        });
+        const teacherNewLoginData = await teacherNewLoginRes.json();
+        assert(teacherNewLoginData.success === true && teacherNewLoginData.user.role === 'teacher', 'Teacher login with new password succeeds');
+
+        // Reset passwords back to standard demo defaults for evaluation consistency
+        const resetBackHashStudent = await bcrypt.hash('student123', 10);
+        await db.query("UPDATE users SET password = ? WHERE email = 'student@test.com'", [resetBackHashStudent]);
+        const resetBackHashTeacher = await bcrypt.hash('teacher123', 10);
+        await db.query("UPDATE users SET password = ? WHERE email = 'teacher@test.com'", [resetBackHashTeacher]);
+        console.log('  (Reset demo student and teacher passwords back to defaults for evaluation)');
 
         // 11. LAST LOGIN TIMESTAMP
         console.log('\n--- Testing Last Login Timestamp ---');
